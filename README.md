@@ -30,12 +30,3 @@ El Módulo 3 se encarga de determinar la rentabilidad real de cada lote avícola
 3. **M3-CU03 – Generar Matriz de Ventas / Liquidación (P1):** Cálculo de Venta Bruta, Pérdida por Mortalidad, Costos Operativos (alimento, medicina, compra pollitos) y Utilidad Neta.
 4. **M3-CU04 – Desglose de Ventas y Gastos (P2):** Detalle auditado por partida/categoría y exportación a formato Excel (.xlsx).
 5. **M3-CU05 – Consultar Historial de Reportes Financieros (P3):** Consulta histórica con filtros por fecha y galpón para análisis comparativo entre ciclos.
-
----
-
-## Metodología de Desarrollo
-
-Este proyecto sigue el marco de **Specification-Driven Development (SDD)**:
-1. **Fase 1 (SPEC):** Definición formal de requerimientos, escenarios *Given/When/Then* y criterios de aceptación sin detalles de implementación (`specs/features/modulo3/`).
-2. **Fase 2 (PLAN):** Diseño técnico de arquitectura, modelos y contratos de integración.
-3. **Fase 3 (Implementación):** Desarrollo en Java 17, Maven y pruebas unitarias con JUnit 5.
