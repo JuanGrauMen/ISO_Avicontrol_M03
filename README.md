@@ -2,14 +2,14 @@
 
 Sistema para la consolidación de ventas, cálculo de costos operativos, liquidación definitiva de lotes y análisis de rentabilidad financiera por ciclo productivo avícola.
 
-## 🎓 Información Académica
+## Información Académica
 
 - **Institución:** Universidad del Magdalena
 - **Programa:** Ingeniería de Sistemas
 - **Asignatura:** Ingeniería de Software (Grupo 2)
 - **Docente:** Ing. Juan Manuel Rodríguez Pineda
 
-## 👥 Integrantes del Grupo
+## Integrantes del Grupo
 
 - Juan Grau
 - Jorge Meléndez
@@ -19,7 +19,7 @@ Sistema para la consolidación de ventas, cálculo de costos operativos, liquida
 
 ---
 
-## 📌 Alcance del Módulo 3
+## Alcance del Módulo 3
 
 El Módulo 3 se encarga de determinar la rentabilidad real de cada lote avícola al cierre de su ciclo de producción.
 
@@ -33,7 +33,7 @@ El Módulo 3 se encarga de determinar la rentabilidad real de cada lote avícola
 
 ---
 
-## 📐 Metodología de Desarrollo
+## Metodología de Desarrollo
 
 Este proyecto sigue el marco de **Specification-Driven Development (SDD)**:
 1. **Fase 1 (SPEC):** Definición formal de requerimientos, escenarios *Given/When/Then* y criterios de aceptación sin detalles de implementación (`specs/features/modulo3/`).
