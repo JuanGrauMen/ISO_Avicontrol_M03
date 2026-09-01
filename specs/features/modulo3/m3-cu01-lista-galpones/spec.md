@@ -49,6 +49,8 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 
 - **Galpón con población viva igual a 0 en estado Productivo/En Cosecha**: El sistema permite visualizarlo pero restringe el registro de ventas si no hay aves vivas disponibles.
 - **Pérdida temporal de conexión con el Módulo 1**: El sistema muestra un mensaje de error amigable indicando la indisponibilidad del servicio de origen y evita mostrar datos parciales o corruptos.
+-!!! tip "warning"
+- tener en cuenta para cambios.
 - **Transición de estado concurrente**: Si el estado del galpón cambia en el Módulo 1 mientras el usuario tiene la lista abierta, la acción se revalida antes de abrir el formulario de venta o liquidación.
 
 ---
