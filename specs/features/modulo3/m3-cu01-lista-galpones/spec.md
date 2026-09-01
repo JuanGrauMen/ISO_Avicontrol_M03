@@ -51,6 +51,7 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 - **Pérdida temporal de conexión con el Módulo 1**: El sistema muestra un mensaje de error amigable indicando la indisponibilidad del servicio de origen y evita mostrar datos parciales o corruptos.
 !!! tip "warning"
 - tener en cuenta para cambios.
+- 
 - **Transición de estado concurrente**: Si el estado del galpón cambia en el Módulo 1 mientras el usuario tiene la lista abierta, la acción se revalida antes de abrir el formulario de venta o liquidación.
 
 ---
