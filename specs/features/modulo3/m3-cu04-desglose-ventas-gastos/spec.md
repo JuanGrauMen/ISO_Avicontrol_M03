@@ -14,7 +14,7 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 
 **Why this priority**: Proporciona total transparencia, trazabilidad financiera y justificación detallada de los costos consolidados generados en M3-CU03.
 
-**Independent Test**: Se abre la consulta de una liquidación activa existente, se verifica que cada subtotal por partida suma con exactitud al peso el valor de Costos Operativos y que la exportación a Excel genera un archivo idéntico a lo mostrado en pantalla.
+**Independent Test**: Se abre la consulta de una liquidación activa existente almacenada en M3, se verifica que cada subtotal por partida suma con exactitud al peso el valor de Costos Operativos y que la exportación a Excel genera un archivo idéntico a lo mostrado en pantalla.
 
 **Acceptance Scenarios**:
 
@@ -43,7 +43,8 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 
 ### Edge Cases
 
-- **Trazabilidad de origen (≤ 3 clics)**: Cada línea del desglose debe indicar su fuente original (ej. "Módulo 2 - Consumos Diarios", "Módulo 1 / Compra Lote") permitiendo al auditor verificar el sustento del dato.
+- **Trazabilidad de origen (≤ 3 clics)**: Cada línea del desglose debe indicar la referencia de su fuente original sincronizada (ej. "Módulo 2 - Consumos", "Módulo 1 / Población Inicial") permitiendo al auditor verificar el sustento del dato sin requerir una consulta en vivo al módulo de origen.
+- **Indisponibilidad de módulos de origen**: La consulta y la exportación utilizan el snapshot financiero almacenado con la liquidación; la falta temporal de Módulo 1 o Módulo 2 no interrumpe estas operaciones.
 - **Formato numérico en Excel**: Los montos en pesos colombianos (COP) en el archivo Excel deben exportarse con formato numérico monetario estándar sin decimales en totales, preservando la fórmula de suma en las celdas de subtotal.
 - **Exportación concurrente**: Múltiples usuarios exportando liquidaciones al mismo tiempo no deben experimentar bloqueos ni corrupción de archivos.
 
@@ -61,6 +62,7 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 - **FR-003**: El sistema MUST proveer la funcionalidad de exportación a formato Excel (`.xlsx`), estructurando la información del lote, la matriz de ventas, el resumen de rentabilidad y el desglose de costos.
 - **FR-004**: Para liquidaciones en estado `ANULADA`, el sistema MUST restringir la vista a solo lectura, presentar un encabezado visual prominente de anulación y deshabilitar el botón de exportación a Excel.
 - **FR-005**: Ante fallas en la exportación a Excel, el sistema MUST capturar la excepción, informar al usuario y habilitar el reintento sin degradar la sesión activa.
+- **FR-006**: El sistema MUST consultar y exportar exclusivamente el snapshot financiero y el desglose almacenados en M3, sin requerir consultas en vivo a Módulo 1 ni Módulo 2.
 
 ### Key Entities
 
