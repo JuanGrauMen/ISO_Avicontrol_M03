@@ -53,8 +53,6 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 ### Edge Cases
 
 - **Galpón con población viva igual a 0 en estado Productivo/En Cosecha**: El sistema permite visualizarlo pero restringe el registro de ventas si no hay aves vivas disponibles.
-- **Pérdida temporal de conexión con el Módulo 1**: La vista no realiza una consulta en vivo. El sistema conserva y muestra la última copia local completa, indica la fecha/hora de su última sincronización y programa reintentos en segundo plano; no borra ni muestra datos parciales.
-
 - **Transición de estado concurrente**: Si el estado del galpón cambia en el Módulo 1, el cambio se refleja en la siguiente sincronización. Las acciones en M3 se validan contra la copia local vigente, sin requerir una llamada en vivo al Módulo 1.
 
 ---
