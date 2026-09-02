@@ -54,7 +54,6 @@ Como administrador financiero, quiero registrar la matriz de ventas definitiva d
 
 - **Venta registrada en galpón equivocado**: No se permite edición silenciosa; el usuario debe anular formalmente la venta con justificación y crear el registro en el galpón correspondiente.
 - **Cambio posterior de población viva en Módulo 1**: Una vez guardada la matriz de ventas en estado `ACTIVA`, el registro permanece inmutable y no se recalcula automáticamente si el Módulo 1 cambia retroactivamente sus cifras.
-- **Indisponibilidad o ausencia de datos sincronizados**: Si Módulo 1 no está disponible, M3 utiliza la última copia local completa. Si no existe una copia sincronizada del lote, el sistema bloquea el registro e informa que debe esperarse la sincronización; no realiza consultas en vivo desde la página.
 - **Precios con decimales**: El precio por kg admite valores con decimales (ej. \$4.500,50 COP), mientras que la cantidad de pollos vendidos debe ser estrictamente un número entero positivo.
 
 ---

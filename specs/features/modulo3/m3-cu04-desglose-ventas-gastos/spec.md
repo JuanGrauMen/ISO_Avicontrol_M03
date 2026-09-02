@@ -44,7 +44,6 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 ### Edge Cases
 
 - **Trazabilidad de origen (≤ 3 clics)**: Cada línea del desglose debe indicar la referencia de su fuente original sincronizada (ej. "Módulo 2 - Consumos", "Módulo 1 / Población Inicial") permitiendo al auditor verificar el sustento del dato sin requerir una consulta en vivo al módulo de origen.
-- **Indisponibilidad de módulos de origen**: La consulta y la exportación utilizan el snapshot financiero almacenado con la liquidación; la falta temporal de Módulo 1 o Módulo 2 no interrumpe estas operaciones.
 - **Formato numérico en Excel**: Los montos en pesos colombianos (COP) en el archivo Excel deben exportarse con formato numérico monetario estándar sin decimales en totales, preservando la fórmula de suma en las celdas de subtotal.
 - **Exportación concurrente**: Múltiples usuarios exportando liquidaciones al mismo tiempo no deben experimentar bloqueos ni corrupción de archivos.
 

@@ -65,7 +65,6 @@ Como administrador financiero, quiero generar la liquidación económica definit
 - **Regla matemática de redondeo monetario**: Las cifras monetarias totales en pesos colombianos (COP) se expresan como números enteros aplicando redondeo estándar `HALF_UP` (hacia el entero más cercano; si el decimal es exactamente 0.5 o mayor, redondea hacia arriba).
 - **Porcentajes de mortalidad**: Se calculan sobre la población inicial oficial de Módulo 1 y se presentan formateados a 2 cifras decimales.
 - **Inmutabilidad absoluta (Snapshot financiero)**: Una vez generada una liquidación `ACTIVA`, los valores quedan congelados. Si con posterioridad se modifican consumos en Módulo 2 o poblaciones en Módulo 1, la liquidación existente no se altera; cualquier cambio requiere una anulación formal y nueva liquidación.
-- **Indisponibilidad o ausencia de datos sincronizados**: La generación utiliza únicamente datos locales sincronizados. Si falta población o costos requeridos para el lote, el sistema bloquea la liquidación e informa los datos pendientes; no consulta en vivo a Módulo 1 ni Módulo 2.
 - **Exclusión de costos indirectos**: Los costos de administración, arrendamientos, nómina general o servicios no forman parte del cálculo operativo en este módulo.
 
 ---
