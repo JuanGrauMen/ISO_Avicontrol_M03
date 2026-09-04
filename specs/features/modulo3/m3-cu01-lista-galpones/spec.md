@@ -14,14 +14,14 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 
 **Why this priority**: Es el punto de entrada principal y obligatorio para todos los flujos operativos y financieros del Módulo 3. Sin esta vista, el usuario no puede seleccionar un lote para operar.
 
-**Independent Test**: Se accede a la vista de lista de galpones y se verifica que el sistema muestra su copia local sincronizada de los datos cuya fuente oficial es el Módulo 1, bloqueando acciones sobre galpones no aptos y mostrando alertas ante discrepancias de población. La consulta debe funcionar aunque el Módulo 1 no esté disponible en ese instante.
+**Independent Test**: Se accede a la vista de lista de galpones y se verifica que el sistema muestra su copia local sincronizada de los datos cuya fuente oficial es el Módulo 1, bloqueando acciones sobre galpones no aptos. La consulta debe funcionar aunque el Módulo 1 no esté disponible en ese instante.
 
 **Acceptance Scenarios**:
 
 1. **Scenario**: Visualización de galpones con datos completos
    - **Given** existen galpones registrados en la copia local sincronizada, con origen en el Módulo 1
    - **When** el administrador financiero accede al listado de galpones
-   - **Then** el sistema muestra cada galpón con su UUID, nombre, aforo máximo, estado actual (`Disponible`, `Vaciado Sanitario`, `Productivo`, `En Cosecha`, `Mantenimiento`, `Aislamiento`), y, cuando exista un lote activo, su UUID, fecha de ingreso, edad en días, población inicial, población actual y fecha/hora de la última sincronización
+   - **Then** el sistema muestra cada galpón con su UUID, nombre, aforo máximo, estado actual (`Disponible`, `Vaciado Sanitario`, `Productivo`, `En Cosecha`, `Mantenimiento`, `Aislamiento`), y, cuando exista un lote activo, su UUID, nombre, fecha de ingreso, edad calculada en días, población inicial, población actual y fecha/hora de la última sincronización
 
 2. **Scenario**: Selección de galpón en cosecha para flujo de ventas/liquidación
    - **Given** se visualiza la lista y existe un galpón con lote activo en estado `En Cosecha`
@@ -56,8 +56,8 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 
 ### Functional Requirements
 
-- **FR-001**: El sistema MUST mostrar desde su copia local sincronizada la lista de galpones con UUID, nombre, aforo máximo, estado operativo y fecha/hora de última sincronización. Cuando el galpón tenga lote activo, MUST mostrar además UUID de lote, fecha de ingreso, edad en días, población inicial y población actual.
-- **FR-002**: El sistema MUST tomar la población inicial, población viva y el estado operativo cuyo origen es el Módulo 1 como la fuente oficial de verdad, mediante sincronización asíncrona y periódica; la consulta del usuario no DEBE depender de una conexión en vivo con dicho módulo.
+- **FR-001**: El sistema MUST mostrar desde su copia local sincronizada la lista de galpones con UUID, nombre, aforo máximo, estado operativo y fecha/hora de última sincronización. Cuando el galpón tenga lote activo, MUST mostrar además UUID y nombre de lote, fecha de ingreso, edad calculada en días, población inicial y población actual.
+- **FR-002**: El sistema MUST tomar la población inicial, población actual y el estado operativo cuyo origen es el Módulo 1 como la fuente oficial de verdad. Módulo 1 actualiza la población actual con base en la mortalidad registrada y comunicada por Módulo 2. La consulta del usuario DEBE usar sincronización asíncrona y periódica, sin depender de una conexión en vivo con Módulo 1.
 - **FR-003**: El sistema MUST admitir únicamente el siguiente catálogo unificado de estados operativos:
   - `Disponible`: Galpón sin lote activo (no accionable para venta o liquidación).
   - `Vaciado Sanitario`: Galpón en desinfección y preparación (no accionable para venta o liquidación).
@@ -73,7 +73,7 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 ### Key Entities
 
 - **Galpón**: Unidad física de producción avícola. Atributos clave: `idGalpon` (UUID), `nombre`, `aforoMaximo`, `estado` (`Disponible` | `Vaciado Sanitario` | `Productivo` | `En Cosecha` | `Mantenimiento` | `Aislamiento`).
-- **Lote**: Conjunto de aves alojado en un galpón durante un ciclo productivo. Atributos clave: `idLote` (UUID), `idGalpon` (UUID, relación con Galpón), `fechaIngreso`, `edadDias`, `poblacionInicial`, `poblacionActual`.
+- **Lote**: Conjunto de aves alojado en un galpón durante un ciclo productivo. Atributos clave: `idLote` (UUID), `idGalpon` (UUID, relación con Galpón), `nombre`, `fechaIngreso`, `edadCalculadaDias` (derivada de la fecha de ingreso y la fecha actual), `poblacionInicial`, `poblacionActual`.
 - **CopiaLocalGalponLote**: Réplica local completa de Galpón y su lote activo utilizada por M3, con `fechaHoraUltimaSincronizacion` y estado de sincronización.
 
 ---
