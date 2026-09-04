@@ -10,7 +10,7 @@
 
 ### User Story 1 - Auditoría y Desglose Detallado de Partidas (Priority: P2)
 
-Como administrador financiero, quiero consultar en pantalla y exportar a Excel el desglose pormenorizado de las partidas de ingresos y costos operativos (alimento por etapa/tipo, medicamentos y costo de pollitos iniciales) de una liquidación, para auditar el origen exacto de cada cifra antes de tomar decisiones de negocio.
+Como administrador financiero, quiero consultar en pantalla y exportar a Excel el desglose pormenorizado de las partidas de ingresos y costos operativos (compras de alimento, compras de medicamentos y costo inicial de pollitos) de una liquidación, para auditar el origen exacto de cada cifra antes de tomar decisiones de negocio.
 
 **Why this priority**: Proporciona total transparencia, trazabilidad financiera y justificación detallada de los costos consolidados generados en M3-CU03.
 
@@ -19,9 +19,9 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 **Acceptance Scenarios**:
 
 1. **Scenario**: Visualización del desglose completo por categorías
-   - **Given** un lote con liquidación en estado `ACTIVA` que incluye consumos de alimento (Pre-inicio, Inicio, Engorde/Broiler), insumos médicos y costo de adquisición de aves
+   - **Given** un lote con liquidación en estado `ACTIVA` que incluye compras de alimento (Pre-inicio, Inicio, Engorde/Broiler), compras de insumos médicos y costo inicial de adquisición de aves
    - **When** el administrador financiero accede a la vista de desglose detallado
-   - **Then** el sistema presenta una tabla estructurada por categorías donde cada fila detalla: Concepto, Cantidad consumida/vendida, Unidad de medida, Precio unitario aplicado (COP) y Subtotal valorizado (COP)
+   - **Then** el sistema presenta una tabla estructurada por categorías donde cada fila detalla: Concepto, Cantidad comprada/vendida, Unidad de medida, Precio unitario aplicado (COP) y Subtotal valorizado (COP)
    - **And** la suma total de los subtotales de egreso coincide con exactitud matemática al peso con el valor de Costos Operativos de la liquidación
 
 2. **Scenario**: Exportación exitosa a archivo Excel
@@ -43,7 +43,7 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 
 ### Edge Cases
 
-- **Trazabilidad de origen (≤ 3 clics)**: Cada línea del desglose debe indicar la referencia de su fuente original sincronizada (ej. "Módulo 2 - Consumos", "Módulo 1 / Población Inicial") permitiendo al auditor verificar el sustento del dato sin requerir una consulta en vivo al módulo de origen.
+- **Trazabilidad de origen (≤ 3 clics)**: Cada línea del desglose debe indicar la referencia de su fuente original sincronizada (ej. "Módulo 2 - Compra de alimento", "Módulo 1 / Costo inicial de pollitos") permitiendo al auditor verificar el sustento del dato sin requerir una consulta en vivo al módulo de origen.
 - **Formato numérico en Excel**: Los montos en pesos colombianos (COP) en el archivo Excel deben exportarse con formato numérico monetario estándar sin decimales en totales, preservando la fórmula de suma en las celdas de subtotal.
 - **Exportación concurrente**: Múltiples usuarios exportando liquidaciones al mismo tiempo no deben experimentar bloqueos ni corrupción de archivos.
 
@@ -54,9 +54,9 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 ### Functional Requirements
 
 - **FR-001**: El sistema MUST mostrar el desglose pormenorizado de la liquidación agrupado en las siguientes categorías de costos operativos:
-  - **Alimento**: Detalle por tipo (Pre-inicio, Inicio, Engorde, etc.) con kg consumidos, precio vigente por kg y subtotal en COP.
-  - **Insumos Médicos**: Detalle por medicamento/vacuna con cantidad suministrada, unidad de medida, tarifa unitaria y subtotal en COP.
-  - **Población Inicial**: Cantidad de pollitos ingresados (Módulo 1), costo unitario por ave y subtotal en COP.
+  - **Alimento**: Detalle por compra y tipo (Pre-inicio, Inicio, Engorde, etc.) con kg comprados, precio aplicado por kg y subtotal en COP.
+  - **Insumos Médicos**: Detalle por compra de medicamento/vacuna con cantidad comprada, unidad de medida, tarifa unitaria y subtotal en COP.
+  - **Población Inicial**: Costo inicial no acumulativo de adquisición de pollitos informado por Módulo 1.
 - **FR-002**: La suma de los subtotales de todas las partidas MUST ser idéntica al peso con el campo `costosOperativos` de la liquidación (cero discrepancias).
 - **FR-003**: El sistema MUST proveer la funcionalidad de exportación a formato Excel (`.xlsx`), estructurando la información del lote, la matriz de ventas, el resumen de rentabilidad y el desglose de costos.
 - **FR-004**: Para liquidaciones en estado `ANULADA`, el sistema MUST restringir la vista a solo lectura, presentar un encabezado visual prominente de anulación y deshabilitar el botón de exportación a Excel.
