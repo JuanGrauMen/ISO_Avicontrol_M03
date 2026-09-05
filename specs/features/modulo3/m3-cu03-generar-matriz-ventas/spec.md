@@ -14,12 +14,12 @@ Como administrador financiero, quiero generar la liquidación económica definit
 
 **Why this priority**: Es el entregable central del Módulo 3 y el cálculo económico final del sistema. Determina si el lote generó ganancias o pérdidas reales.
 
-**Independent Test**: Con una alerta de vaciado sanitario que identifica el lote, una matriz de ventas activa o población actual igual a 0 por mortalidad total, datos locales sincronizados completos de población (origen Módulo 1) y compras valorizadas del ciclo (origen Módulo 2), se ejecuta la generación de la liquidación y se comprueba que los cuatro indicadores cuadran con precisión de 100% contra el cálculo matemático verificado.
+**Independent Test**: Con una alerta de vaciado sanitario que identifica el lote, una matriz comercial activa valorizada por M3 a partir del resultado final de sacrificio de Módulo 2, o población actual igual a 0 por mortalidad total, datos locales sincronizados completos y compras valorizadas del ciclo, se ejecuta la generación de la liquidación y se comprueba que los cuatro indicadores cuadran con precisión de 100% contra el cálculo matemático verificado.
 
 **Acceptance Scenarios**:
 
 1. **Scenario**: Generación exitosa de liquidación definitiva (Caso Dorado)
-   - **Given** una alerta de vaciado sanitario que conserva los UUID de un galpón y su lote, con Población Inicial sincronizada de 9.000 pollos (origen M1), Matriz de Ventas ACTIVA con 8.500 pollos vendidos, peso promedio 2,8 kg y precio \$4.500 COP/kg, y Costos Operativos valorizados de \$85.000.000 COP (compras de Alimento, Medicina y costo inicial de Pollitos)
+   - **Given** una alerta de vaciado sanitario que conserva los UUID de un galpón y su lote, con Población Inicial sincronizada de 9.000 pollos (origen M1), Matriz de Ventas ACTIVA valorada por M3 desde un resultado final de M2 de 8.500 pollos y 23.800 kg totales, peso promedio calculado de 2,8 kg y precio \$4.500 COP/kg, y Costos Operativos valorizados de \$85.000.000 COP (compras de Alimento, Medicina y costo inicial de Pollitos)
    - **When** el administrador financiero solicita generar la liquidación
    - **Then** el sistema calcula y presenta:
      - **Venta Bruta**: \$107.100.000 COP (`8.500 × 2,8 × 4.500`)
@@ -78,8 +78,8 @@ Como administrador financiero, quiero generar la liquidación económica definit
 
 ### Functional Requirements
 
-- **FR-001**: El sistema MUST calcular la **Venta Bruta** aplicando la fórmula:  
-  `Venta Bruta = Pollos Vendidos × Peso Promedio (kg) × Precio por kg (COP)` con redondeo `HALF_UP` a enteros.
+- **FR-001**: El sistema MUST calcular la **Venta Bruta** a partir de la matriz comercial, aplicando la fórmula:
+  `Venta Bruta = Pollos Vendidos (origen M2) × Peso Promedio calculado (kg) × Precio por kg (M3)` con redondeo `HALF_UP` a enteros.
 - **FR-002**: El sistema MUST calcular la **Pérdida por Mortalidad** aplicando las fórmulas:
   - `Mortalidad Absoluta = Población Inicial sincronizada (origen Módulo 1) − Pollos Vendidos`
   - `Porcentaje Mortalidad = (Mortalidad Absoluta / Población Inicial) × 100` (con 2 decimales).
@@ -89,7 +89,7 @@ Como administrador financiero, quiero generar la liquidación económica definit
   - Costo de Población: costo inicial no acumulativo de adquisición de pollitos informado por Módulo 1.
 - **FR-004**: El sistema MUST calcular la **Utilidad Neta** aplicando la fórmula:  
   `Utilidad Neta = Venta Bruta − Costos Operativos`.
-- **FR-005**: El sistema MUST exigir una alerta de vaciado sanitario registrada por Módulo 1, que conserve los UUID del galpón y lote, como condición previa obligatoria para liquidar. Debe existir una matriz de ventas `ACTIVA`, excepto cuando la población actual sincronizada del lote sea 0 por mortalidad total; en ese caso MUST permitir una liquidación de siniestro total sin matriz de ventas.
+- **FR-005**: El sistema MUST exigir una alerta de vaciado sanitario registrada por Módulo 1, que conserve los UUID del galpón y lote, como condición previa obligatoria para liquidar. Debe existir una matriz comercial `ACTIVA` valorizada por M3 desde el resultado final de sacrificio de Módulo 2, excepto cuando la población actual sincronizada del lote sea 0 por mortalidad total; en ese caso MUST permitir una liquidación de siniestro total sin matriz de ventas.
 - **FR-006**: El sistema MUST impedir la liquidación y listar las partidas faltantes si alguna compra de alimento o medicina del ciclo carece de precio asignado. No se permiten liquidaciones preliminares ni parciales.
 - **FR-007**: El sistema MUST guardar la liquidación con estado `ACTIVA`, fecha/hora de generación y usuario responsable.
 - **FR-008**: Toda liquidación generada MUST ser inmutable. Para corregir un error se MUST ejecutar un flujo de anulación que capture motivo, responsable y marque el estado en `ANULADA`, permitiendo generar una nueva liquidación sobre el lote.

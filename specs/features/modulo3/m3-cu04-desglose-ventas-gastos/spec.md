@@ -10,7 +10,7 @@
 
 ### User Story 1 - Auditoría y Desglose Detallado de Partidas (Priority: P2)
 
-Como administrador financiero, quiero consultar en pantalla y exportar a Excel el desglose pormenorizado de las partidas de ingresos y costos operativos (compras de alimento, compras de medicamentos y costo inicial de pollitos) de una liquidación, para auditar el origen exacto de cada cifra antes de tomar decisiones de negocio.
+Como administrador financiero, quiero consultar en pantalla y exportar a Excel el desglose pormenorizado de las partidas de ingresos y costos operativos (resultado operativo de sacrificio, compras de alimento, compras de medicamentos y costo inicial de pollitos) de una liquidación, para auditar el origen exacto de cada cifra antes de tomar decisiones de negocio.
 
 **Why this priority**: Proporciona total transparencia, trazabilidad financiera y justificación detallada de los costos consolidados generados en M3-CU03.
 
@@ -27,7 +27,7 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 2. **Scenario**: Exportación exitosa a archivo Excel
    - **Given** se visualiza en pantalla el desglose de una liquidación activa
    - **When** el usuario presiona el botón "Exportar a Excel"
-   - **Then** el sistema genera y descarga un archivo `.xlsx` que contiene la matriz de ventas comercial, los indicadores consolidados (Venta Bruta, Mortalidad, Utilidad Neta) y la tabla de desglose completa con los mismos valores de pantalla
+   - **Then** el sistema genera y descarga un archivo `.xlsx` que contiene el resultado final de sacrificio de Módulo 2, la matriz comercial valorizada por M3, los indicadores consolidados (Venta Bruta, Mortalidad, Utilidad Neta) y la tabla de desglose completa con los mismos valores de pantalla
 
 3. **Scenario**: Consulta de desglose sobre liquidación ANULADA
    - **Given** una liquidación que fue marcada en estado `ANULADA`
@@ -58,7 +58,7 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
   - **Insumos Médicos**: Detalle por compra de medicamento/vacuna con cantidad comprada, unidad de medida, tarifa unitaria y subtotal en COP.
   - **Población Inicial**: Costo inicial no acumulativo de adquisición de pollitos informado por Módulo 1.
 - **FR-002**: La suma de los subtotales de todas las partidas MUST ser idéntica al peso con el campo `costosOperativos` de la liquidación (cero discrepancias).
-- **FR-003**: El sistema MUST proveer la funcionalidad de exportación a formato Excel (`.xlsx`), estructurando la información del lote, la matriz de ventas, el resumen de rentabilidad y el desglose de costos.
+- **FR-003**: El sistema MUST proveer la funcionalidad de exportación a formato Excel (`.xlsx`), estructurando la información del lote, el resultado final de sacrificio de Módulo 2, la matriz comercial valorizada por M3, el resumen de rentabilidad y el desglose de costos.
 - **FR-004**: Para liquidaciones en estado `ANULADA`, el sistema MUST restringir la vista a solo lectura, presentar un encabezado visual prominente de anulación y deshabilitar el botón de exportación a Excel.
 - **FR-005**: Ante fallas en la exportación a Excel, el sistema MUST capturar la excepción, informar al usuario y habilitar el reintento sin degradar la sesión activa.
 - **FR-006**: El sistema MUST consultar y exportar exclusivamente el snapshot financiero y el desglose almacenados en M3, sin requerir consultas en vivo a Módulo 1 ni Módulo 2.
