@@ -23,15 +23,15 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
    - **When** el administrador financiero accede al listado de galpones
    - **Then** el sistema muestra cada galpón con su UUID, nombre, aforo máximo, estado actual (`Disponible`, `Vaciado Sanitario`, `Productivo`, `En Cosecha`, `Mantenimiento`, `Aislamiento`), y, cuando exista un lote activo, su UUID, nombre, fecha de ingreso, edad calculada en días, población inicial, población actual y fecha/hora de la última sincronización
 
-2. **Scenario**: Selección de galpón en cosecha para registro de venta
+2. **Scenario**: Selección de galpón en cosecha para seguimiento del cierre
    - **Given** se visualiza la lista y existe un galpón con lote activo en estado `En Cosecha`
    - **When** el usuario selecciona dicho galpón
-   - **Then** el sistema habilita la opción para registrar matriz de ventas (M3-CU02)
+   - **Then** el sistema muestra que el cierre operativo está a cargo de Módulo 2 y mantiene deshabilitadas las acciones financieras hasta que Módulo 1 registre el vaciado sanitario
 
 3. **Scenario**: Selección de galpón en vaciado sanitario para liquidación
-   - **Given** se visualiza la lista y existe un galpón en estado `Vaciado Sanitario` con una matriz de ventas `ACTIVA`
+   - **Given** se visualiza la lista y existe un galpón en estado `Vaciado Sanitario` con una alerta de vaciado sanitario que conserva el UUID del lote y del galpón
    - **When** el usuario interactúa con dicho galpón
-   - **Then** el sistema mantiene deshabilitado el registro de venta y habilita la opción para generar la liquidación del lote (M3-CU03)
+   - **Then** el sistema habilita la valoración comercial (M3-CU02) si existe un resultado final de sacrificio sincronizado desde Módulo 2 y no existe matriz `ACTIVA`; habilita la liquidación (M3-CU03) si ya existe matriz `ACTIVA` o si la población actual sincronizada es 0 por mortalidad total
 
 4. **Scenario**: Galpón sin condiciones para venta o liquidación
    - **Given** un galpón listado en estado `Disponible`, `Productivo`, `Mantenimiento` o `Aislamiento`
@@ -65,13 +65,13 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 - **FR-002**: El sistema MUST tomar la población inicial, población actual y el estado operativo cuyo origen es el Módulo 1 como la fuente oficial de verdad. Módulo 1 actualiza la población actual con base en la mortalidad registrada y comunicada por Módulo 2. La consulta del usuario DEBE usar sincronización asíncrona y periódica, sin depender de una conexión en vivo con Módulo 1.
 - **FR-003**: El sistema MUST admitir únicamente el siguiente catálogo unificado de estados operativos:
   - `Disponible`: Galpón sin lote activo (no accionable para venta o liquidación).
-  - `Vaciado Sanitario`: Galpón sin aves después de la cosecha. No permite registrar venta; permite generar liquidación únicamente si existe una matriz de ventas `ACTIVA`.
+  - `Vaciado Sanitario`: Galpón sin aves después de la cosecha. Permite valorar comercialmente un resultado final válido de Módulo 2 y, después, generar la liquidación; también permite liquidar sin matriz únicamente en mortalidad total con población actual igual a 0.
   - `Productivo`: Lote en crecimiento/alimentación (consultable, no accionable para venta o liquidación).
-  - `En Cosecha`: Lote en fase de recolección y venta (accionable únicamente para registro de ventas).
+  - `En Cosecha`: Lote en fase de cierre operativo a cargo de Módulo 2 (consultable, no accionable financieramente en M3).
   - `Mantenimiento`: Galpón en reparaciones estructurales (no accionable para venta o liquidación).
   - `Aislamiento`: Galpón o lote con restricción sanitaria (no accionable para venta o liquidación).
-- **FR-004**: El sistema MUST permitir al usuario seleccionar un galpón en estado `En Cosecha` para navegar hacia el registro de matriz de ventas (M3-CU02). Cuando el estado sea `Vaciado Sanitario` y exista una matriz de ventas `ACTIVA`, MUST permitir navegar hacia la liquidación del lote (M3-CU03).
-- **FR-005**: El sistema MUST deshabilitar el registro de venta para estados diferentes de `En Cosecha` y la generación de liquidación para estados diferentes de `Vaciado Sanitario` o cuando no exista una matriz de ventas `ACTIVA`.
+- **FR-004**: Cuando el estado sea `Vaciado Sanitario`, el sistema MUST identificar el lote mediante los UUID históricos de la alerta de vaciado sanitario. Debe permitir navegar a la valoración comercial (M3-CU02) si existe resultado final de sacrificio sincronizado desde Módulo 2 y no existe matriz `ACTIVA`; debe permitir navegar a liquidación si existe matriz `ACTIVA` o si la población actual sincronizada es 0.
+- **FR-005**: El sistema MUST deshabilitar las acciones financieras en estados diferentes de `Vaciado Sanitario`; debe deshabilitar la valoración comercial cuando no exista resultado final válido y la liquidación cuando no exista matriz `ACTIVA`, excepto el siniestro total autorizado con población actual igual a 0.
 - **FR-006**: Ante la ausencia de registros de galpones, el sistema MUST mostrar un estado vacío claro y mantener bloqueada cualquier acción posterior.
 - **FR-007**: El sistema MUST ejecutar la sincronización de galpones en segundo plano según un intervalo configurable. Si el Módulo 1 no está disponible, MUST conservar la última copia local completa, registrar el fallo y reintentar sin bloquear M3 ni los demás módulos.
 
@@ -80,6 +80,7 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 - **Galpón**: Unidad física de producción avícola. Atributos clave: `idGalpon` (UUID), `nombre`, `aforoMaximo`, `estado` (`Disponible` | `Vaciado Sanitario` | `Productivo` | `En Cosecha` | `Mantenimiento` | `Aislamiento`).
 - **Lote**: Conjunto de aves alojado en un galpón durante un ciclo productivo. Atributos clave: `idLote` (UUID), `idGalpon` (UUID, relación con Galpón), `nombre`, `fechaIngreso`, `edadCalculadaDias` (derivada de la fecha de ingreso y la fecha actual), `poblacionInicial`, `poblacionActual`.
 - **CopiaLocalGalponLote**: Réplica local completa de Galpón y su lote activo utilizada por M3, con `fechaHoraUltimaSincronizacion` y estado de sincronización.
+- **AlertaVaciadoSanitario**: Evento originado en Módulo 2 y registrado por Módulo 1 al finalizar la cosecha. Conserva `idAlerta`, `idGalpon`, `idLote`, `fechaHoraEvento` y permite a M3 identificar el lote que fue desvinculado del galpón.
 
 ---
 
@@ -89,6 +90,6 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 
 - **SC-001**: El tiempo de carga y renderizado de la lista de galpones es inferior a 3 segundos para operaciones de hasta 20 galpones simultáneos.
 - **SC-002**: El 100% de los datos de galpón y lote reflejan con exactitud la información provista por el Módulo 1.
-- **SC-003**: Cero accesos permitidos al registro de venta fuera de `En Cosecha` o a la generación de liquidación fuera de `Vaciado Sanitario` con matriz de ventas `ACTIVA`.
+- **SC-003**: Cero accesos permitidos a la valoración comercial o a la liquidación fuera de `Vaciado Sanitario`; la liquidación sin matriz solo se permite en siniestro total con población actual igual a 0.
 - **SC-004**: Los usuarios administradores pueden identificar el estado de cualquier galpón en menos de 5 segundos de interacción.
 - **SC-005**: El 100% de las consultas de galpones se completa usando la copia local disponible, aun cuando Módulo 1 esté temporalmente indisponible.

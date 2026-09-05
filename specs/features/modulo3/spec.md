@@ -11,8 +11,8 @@ Este documento es el **índice del módulo**: coordina las especificaciones ató
 | ID | Nombre | Prioridad | Depende de | Especificación |
 | :--- | :--- | :--- | :--- | :--- |
 | M3-CU01 | Consultar Lista de Galpones | P1 | — (punto de entrada) | [m3-cu01-lista-galpones/spec.md](m3-cu01-lista-galpones/spec.md) |
-| M3-CU02 | Registrar Matriz de Ventas | P1 | M3-CU01 · Módulo 1 (población) | [m3-cu02-registrar-matriz-ventas/spec.md](m3-cu02-registrar-matriz-ventas/spec.md) |
-| M3-CU03 | Generar Matriz de Ventas (liquidación) | P1 | M3-CU02 · Módulo 2 (consumos) | [m3-cu03-generar-matriz-ventas/spec.md](m3-cu03-generar-matriz-ventas/spec.md) |
+| M3-CU02 | Registrar Matriz de Ventas | P1 | M3-CU01 · Módulo 1 (vaciado) · Módulo 2 (resultado final) | [m3-cu02-registrar-matriz-ventas/spec.md](m3-cu02-registrar-matriz-ventas/spec.md) |
+| M3-CU03 | Generar Matriz de Ventas (liquidación) | P1 | M3-CU02 · Módulo 1 (población) · Módulo 2 (consumos) | [m3-cu03-generar-matriz-ventas/spec.md](m3-cu03-generar-matriz-ventas/spec.md) |
 | M3-CU04 | Desglose de Ventas y Gastos | P2 | M3-CU03 (liquidación ACTIVA) | [m3-cu04-desglose-ventas-gastos/spec.md](m3-cu04-desglose-ventas-gastos/spec.md) |
 | M3-CU05 | Consultar Historial de Reportes Financieros | P3 | M3-CU03 (≥ 1 liquidación) | [m3-cu05-historial-reportes/spec.md](m3-cu05-historial-reportes/spec.md) |
 
