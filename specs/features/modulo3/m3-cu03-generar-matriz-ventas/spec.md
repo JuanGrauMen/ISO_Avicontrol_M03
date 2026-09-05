@@ -14,12 +14,12 @@ Como administrador financiero, quiero generar la liquidación económica definit
 
 **Why this priority**: Es el entregable central del Módulo 3 y el cálculo económico final del sistema. Determina si el lote generó ganancias o pérdidas reales.
 
-**Independent Test**: Con un lote que cuente con su matriz de ventas activa y datos locales sincronizados completos de población (origen Módulo 1) y consumos valorizados (origen Módulo 2), se ejecuta la generación de la liquidación y se comprueba que los cuatro indicadores cuadran con precisión de 100% contra el cálculo matemático verificado.
+**Independent Test**: Con un lote en estado `Vaciado Sanitario`, matriz de ventas activa, datos locales sincronizados completos de población (origen Módulo 1) y compras valorizadas del ciclo (origen Módulo 2), se ejecuta la generación de la liquidación y se comprueba que los cuatro indicadores cuadran con precisión de 100% contra el cálculo matemático verificado.
 
 **Acceptance Scenarios**:
 
 1. **Scenario**: Generación exitosa de liquidación definitiva (Caso Dorado)
-   - **Given** un lote con Población Inicial sincronizada de 9.000 pollos (origen M1), Matriz de Ventas ACTIVA con 8.500 pollos vendidos, peso promedio 2,8 kg y precio \$4.500 COP/kg, y Costos Operativos sincronizados y valorizados de \$85.000.000 COP (Alimento + Medicina + Pollitos)
+   - **Given** un galpón en estado `Vaciado Sanitario`, con Población Inicial sincronizada de 9.000 pollos (origen M1), Matriz de Ventas ACTIVA con 8.500 pollos vendidos, peso promedio 2,8 kg y precio \$4.500 COP/kg, y Costos Operativos valorizados de \$85.000.000 COP (compras de Alimento, Medicina y costo inicial de Pollitos)
    - **When** el administrador financiero solicita generar la liquidación
    - **Then** el sistema calcula y presenta:
      - **Venta Bruta**: \$107.100.000 COP (`8.500 × 2,8 × 4.500`)
@@ -29,22 +29,22 @@ Como administrador financiero, quiero generar la liquidación económica definit
      - Estado de la liquidación: `ACTIVA`, fechada con usuario responsable
 
 2. **Scenario**: Bloqueo por lote sin matriz de ventas registrada
-   - **Given** un galpón en estado `Productivo` o `En Cosecha` que NO posee una matriz de ventas en estado `ACTIVA`
+   - **Given** un galpón en estado `Vaciado Sanitario` que NO posee una matriz de ventas en estado `ACTIVA`
    - **When** se intenta generar la liquidación del lote
    - **Then** el sistema bloquea la acción e informa claramente: "El lote no cuenta con registro de venta activo. Debe registrar la matriz de ventas (M3-CU02) antes de liquidar"
 
-3. **Scenario**: Bloqueo por partidas de costo sin precio configurado
-   - **Given** un lote con venta registrada, pero con consumos de alimento o medicina sincronizados cuyo origen es Módulo 2 que carecen de tarifa/precio unitario vigente en el sistema
+3. **Scenario**: Bloqueo por compras sin precio configurado
+   - **Given** un lote en estado `Vaciado Sanitario` con venta registrada, pero con compras de alimento o medicina sincronizadas cuyo origen es Módulo 2 que carecen de tarifa/precio unitario vigente en el sistema
    - **When** se solicita generar la liquidación
    - **Then** el sistema detiene el proceso, no genera registros preliminares ni parciales, y muestra la lista detallada de insumos pendientes de precio
 
-4. **Scenario**: Ausencia total de consumos sincronizados
-   - **Given** un lote con venta registrada para el cual M3 no cuenta con reportes de consumo sincronizados cuyo origen es Módulo 2
+4. **Scenario**: Ausencia total de compras sincronizadas
+   - **Given** un lote en estado `Vaciado Sanitario` con venta registrada para el cual M3 no cuenta con compras de alimento o medicina sincronizadas cuyo origen es Módulo 2
    - **When** se intenta generar la liquidación
-   - **Then** el sistema notifica "No hay reportes de consumo sincronizados para este ciclo" y mantiene bloqueada la liquidación
+   - **Then** el sistema notifica "No hay compras sincronizadas para este ciclo" y mantiene bloqueada la liquidación
 
 5. **Scenario**: Escenario de mortalidad del 100% (Siniestro total)
-   - **Given** un lote con 9.000 pollos iniciales y 0 pollos vendidos por mortalidad total, con costos acumulados de \$40.000.000 COP
+   - **Given** un galpón en estado `Vaciado Sanitario` con un lote de 9.000 pollos iniciales y 0 pollos vendidos por mortalidad total, con compras del ciclo por \$40.000.000 COP
    - **When** se procesa la liquidación de cierre
    - **Then** el sistema genera la liquidación mostrando Venta Bruta = \$0 COP, Mortalidad = 9.000 aves (100%), Costos Operativos = \$40.000.000 COP y Utilidad Neta = -\$40.000.000 COP
 
@@ -53,7 +53,12 @@ Como administrador financiero, quiero generar la liquidación económica definit
    - **When** el administrador financiero ejecuta la anulación ingresando la justificación
    - **Then** el sistema marca la liquidación como `ANULADA`, conserva el registro histórico con fecha/responsable de anulación y rehabilita el lote para ser liquidado nuevamente
 
-7. **Scenario**: Indisponibilidad temporal de módulos de origen
+7. **Scenario**: Intento de liquidación antes del vaciado sanitario
+   - **Given** un galpón en estado `En Cosecha` con una matriz de ventas `ACTIVA`
+   - **When** el administrador intenta generar la liquidación
+   - **Then** el sistema bloquea la acción e informa que la liquidación se habilita cuando Módulo 1 cambie el galpón a `Vaciado Sanitario` después de retirar todas las aves
+
+8. **Scenario**: Indisponibilidad temporal de módulos de origen
    - **Given** Módulo 1 o Módulo 2 no está disponible y M3 cuenta con los datos locales sincronizados requeridos para el lote
    - **When** el administrador solicita generar la liquidación
    - **Then** el sistema genera la liquidación usando esos datos, conserva su fecha/hora de sincronización en el snapshot financiero y no realiza consultas en vivo a los módulos de origen
@@ -64,7 +69,7 @@ Como administrador financiero, quiero generar la liquidación económica definit
 
 - **Regla matemática de redondeo monetario**: Las cifras monetarias totales en pesos colombianos (COP) se expresan como números enteros aplicando redondeo estándar `HALF_UP` (hacia el entero más cercano; si el decimal es exactamente 0.5 o mayor, redondea hacia arriba).
 - **Porcentajes de mortalidad**: Se calculan sobre la población inicial oficial de Módulo 1 y se presentan formateados a 2 cifras decimales.
-- **Inmutabilidad absoluta (Snapshot financiero)**: Una vez generada una liquidación `ACTIVA`, los valores quedan congelados. Si con posterioridad se modifican consumos en Módulo 2 o poblaciones en Módulo 1, la liquidación existente no se altera; cualquier cambio requiere una anulación formal y nueva liquidación.
+- **Inmutabilidad absoluta (Snapshot financiero)**: Una vez generada una liquidación `ACTIVA`, los valores quedan congelados. Si con posterioridad se modifican compras en Módulo 2 o poblaciones en Módulo 1, la liquidación existente no se altera; cualquier cambio requiere una anulación formal y nueva liquidación.
 - **Exclusión de costos indirectos**: Los costos de administración, arrendamientos, nómina general o servicios no forman parte del cálculo operativo en este módulo.
 
 ---
@@ -79,13 +84,13 @@ Como administrador financiero, quiero generar la liquidación económica definit
   - `Mortalidad Absoluta = Población Inicial sincronizada (origen Módulo 1) − Pollos Vendidos`
   - `Porcentaje Mortalidad = (Mortalidad Absoluta / Población Inicial) × 100` (con 2 decimales).
 - **FR-003**: El sistema MUST consolidar los **Costos Operativos** exclusivamente como la suma valorizada de:
-  - Costo de Alimento: $\sum (\text{kg consumidos por tipo} \times \text{precio vigente})$.
-  - Insumos Médicos: $\sum (\text{cantidad medicina} \times \text{precio vigente})$.
-  - Costo de Población: $\text{Población Inicial} \times \text{precio unitario de compra del pollito}$.
+  - Costo de Alimento: suma de las compras de alimento asociadas al ciclo, sin descontar sobrantes.
+  - Insumos Médicos: suma de las compras de medicamentos asociadas al ciclo, sin descontar sobrantes.
+  - Costo de Población: costo inicial no acumulativo de adquisición de pollitos informado por Módulo 1.
 - **FR-004**: El sistema MUST calcular la **Utilidad Neta** aplicando la fórmula:  
   `Utilidad Neta = Venta Bruta − Costos Operativos`.
-- **FR-005**: El sistema MUST exigir una matriz de ventas en estado `ACTIVA` para el lote como condición previa obligatoria para liquidar.
-- **FR-006**: El sistema MUST impedir la liquidación y listar las partidas faltantes si algún insumo consumido carece de precio asignado. No se permiten liquidaciones preliminares ni parciales.
+- **FR-005**: El sistema MUST exigir que el galpón esté en estado `Vaciado Sanitario` y que exista una matriz de ventas en estado `ACTIVA` como condiciones previas obligatorias para liquidar.
+- **FR-006**: El sistema MUST impedir la liquidación y listar las partidas faltantes si alguna compra de alimento o medicina del ciclo carece de precio asignado. No se permiten liquidaciones preliminares ni parciales.
 - **FR-007**: El sistema MUST guardar la liquidación con estado `ACTIVA`, fecha/hora de generación y usuario responsable.
 - **FR-008**: Toda liquidación generada MUST ser inmutable. Para corregir un error se MUST ejecutar un flujo de anulación que capture motivo, responsable y marque el estado en `ANULADA`, permitiendo generar una nueva liquidación sobre el lote.
 - **FR-009**: El sistema MUST generar la liquidación exclusivamente con datos locales sincronizados cuyo origen sea Módulo 1 o Módulo 2, según corresponda, y conservar en el snapshot financiero la fecha/hora de sincronización de cada fuente. La generación no DEBE requerir consultas en vivo a los módulos de origen.
