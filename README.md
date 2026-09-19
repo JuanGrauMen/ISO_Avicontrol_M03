@@ -2,14 +2,14 @@
 
 Sistema para la consolidación de ventas, cálculo de costos operativos, liquidación definitiva de lotes y análisis de rentabilidad financiera por ciclo productivo avícola.
 
-## Información Académica
+## 🎓 Información Académica
 
 - **Institución:** Universidad del Magdalena
 - **Programa:** Ingeniería de Sistemas
 - **Asignatura:** Ingeniería de Software (Grupo 2)
 - **Docente:** Ing. Juan Manuel Rodríguez Pineda
 
-## Integrantes del Grupo
+## 👥 Integrantes del Grupo
 
 - Juan Grau
 - Jorge Meléndez
@@ -19,14 +19,37 @@ Sistema para la consolidación de ventas, cálculo de costos operativos, liquida
 
 ---
 
-## Alcance del Módulo 3
+## 🎨 Diseño y Prototipos de Interfaz (Figma)
+
+- 🔗 **Tablero oficial en Figma:** [AVICONTROL — Prototipo Interactivo en Figma](https://www.figma.com/design/bJDPtrQoTxztWIuiC9BrC7/alternativo?node-id=0-1&t=pa3GY9r8ORxasFCw-1)
+
+---
+
+## 📌 Alcance del Módulo 3
 
 El Módulo 3 se encarga de determinar la rentabilidad real de cada lote avícola al cierre de su ciclo de producción.
 
 ### Casos de Uso del Módulo:
 
-1. **M3-CU01 – Consultar Lista de Galpones (P1):** Consulta del estado operativo y población viva actual de los galpones (integración oficial con Módulo 1).
-2. **M3-CU02 – Registrar Matriz de Ventas (P1):** Registro único y definitivo de comercialización de aves (pollos vendidos, peso promedio y precio por kg en COP).
-3. **M3-CU03 – Generar Matriz de Ventas / Liquidación (P1):** Cálculo de Venta Bruta, Pérdida por Mortalidad, Costos Operativos (alimento, medicina, compra pollitos) y Utilidad Neta.
-4. **M3-CU04 – Desglose de Ventas y Gastos (P2):** Detalle auditado por partida/categoría y exportación a formato Excel (.xlsx).
-5. **M3-CU05 – Consultar Historial de Reportes Financieros (P3):** Consulta histórica con filtros por fecha y galpón para análisis comparativo entre ciclos.
+#### 🧑‍💼 Funcionales (Administrador Financiero)
+1. **M3-CU01 – Consultar Lista de Galpones (P1):** Consulta del estado operativo y población viva actual de los galpones.
+2. **M3-CU02 – Registrar Matriz de Ventas (P1):** Registro comercial valorizado (pollos vendidos, peso total y precio/kg en COP).
+3. **M3-CU03 – Generar Liquidación del Lote (P1):** Cálculo de Venta Bruta, Mortalidad, Costos Operativos y Utilidad Neta.
+4. **M3-CU04 – Anular Documento Financiero (P1):** Flujo formal de anulación de ventas o liquidaciones con justificación y auditoría.
+5. **M3-CU05 – Consultar Desglose de Ventas y Gastos (P2):** Detalle auditado por partida y exportación a formato Excel (.xlsx).
+6. **M3-CU06 – Consultar Historial de Liquidaciones (P3):** Consulta histórica con filtros por fecha y galpón para análisis comparativo entre ciclos.
+
+#### 🔌 Integración Externa (Módulos 1 y 2)
+7. **M3-CU07 – Consultar Población y Costo del Lote al Módulo 1 (P1)**
+8. **M3-CU08 – Consultar Resultado Final de Sacrificio al Módulo 2 (P1)**
+9. **M3-CU09 – Consultar Alimento del Lote al Módulo 2 (P1)**
+10. **M3-CU10 – Consultar Medicina Consumida al Módulo 2 (P1)**
+
+---
+
+## 📐 Metodología de Desarrollo
+
+Este proyecto sigue el marco de **Specification-Driven Development (SDD)**:
+1. **Fase 1 (SPEC):** Especificaciones atómicas y autocontenidas (`specs/features/modulo3/`).
+2. **Fase 2 (PLAN):** Diseño técnico de arquitectura, modelos y contratos de integración.
+3. **Fase 3 (Implementación):** Desarrollo en Java 17, Maven y pruebas unitarias con JUnit 5.
