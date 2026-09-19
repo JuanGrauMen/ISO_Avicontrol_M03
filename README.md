@@ -1,4 +1,4 @@
-﻿# AVICONTROL — Módulo 3: Liquidación de Lote y Análisis de Rentabilidad
+# AVICONTROL — Módulo 3: Liquidación de Lote y Análisis de Rentabilidad
 
 Sistema para la consolidación de ventas, cálculo de costos operativos, liquidación definitiva de lotes y análisis de rentabilidad financiera por ciclo productivo avícola.
 
@@ -21,7 +21,7 @@ Sistema para la consolidación de ventas, cálculo de costos operativos, liquida
 
 ## 🎨 Diseño y Prototipos de Interfaz (Figma)
 
-- 🔗 **Tablero oficial en Figma:** [AVICONTROL — Prototipo Interactivo en Figma](https://www.figma.com/design/bJDPtrQoTxztWIuiC9BrC7/alternativo?node-id=0-1&t=pa3GY9r8ORxasFCw-1)
+- 🔗 **Prototipo Interactivo en Figma:** [AVICONTROL — Prototipo Interactivo en Figma](https://www.figma.com/proto/bJDPtrQoTxztWIuiC9BrC7/alternativo?node-id=921-1377&starting-point-node-id=921%3A1377&t=d9Aw9XBsMwRcOffT-1)
 
 ---
 
