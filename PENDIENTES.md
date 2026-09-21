@@ -33,10 +33,9 @@ Cosas que voy dejando para después. Se van tachando cuando se resuelven.
 - [ ] Avisar a los equipos de M1 y M2 de los renombres de CU07/CU09/CU10 para que sus diagramas y los nuestros coincidan.
 - [ ] `docs/diagramas/Modulo3_v1.drawio.png` (3.5 MB, sin trackear): ¿se sube, se reemplaza por una exportación más liviana o se borra?
 
-## Por commitear
+## Git
 
-- [ ] Archivos nuevos: `AGENTS.md`, `CLAUDE.md`, `PENDIENTES.md`, `docs/AVICONTROL.md`, `docs/diagramas/Modulo3_v1.drawio`.
-- [ ] Borrados: `docs/diagramas/Diagrama_M3_Avicontrol.drawio`, `docs/diagramas/Imagen_Diagrama_M3_Avicontrol.jpeg`, `m3-cu02-registrar-matriz-ventas/`.
-- [ ] Renombrados: carpetas de CU04, CU07, CU09, CU10.
-- [ ] Modificados: `README.md`, `spec.md`, `CAMBIOS.md`, specs CU01/CU03/CU04/CU05/CU07/CU08/CU09/CU10.
-- [ ] Hacerlo en una rama `docs/unificar-matriz-en-liquidacion` (o similar), no en `main`.
+- [x] Todo lo del 2026-09-21 está commiteado en la rama `docs/unificar-matriz-en-liquidacion` y subido.
+- [ ] **PR #7 abierto hacia `develop`**: https://github.com/JuanGrauMen/ISO_Avicontrol_M03/pull/7 — pendiente de revisión y merge por el equipo.
+- [ ] Decidir si `docs/diagramas/Modulo3_v1.drawio.png` (3,5 MB) se queda en el repo; si no, retirarlo antes del merge.
+- [ ] Tras el merge a `develop`, PR de `develop` a `main`.
