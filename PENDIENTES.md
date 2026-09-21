@@ -35,7 +35,5 @@ Cosas que voy dejando para después. Se van tachando cuando se resuelven.
 
 ## Git
 
-- [x] Todo lo del 2026-09-21 está commiteado en la rama `docs/unificar-matriz-en-liquidacion` y subido.
-- [ ] **PR #7 abierto hacia `develop`**: https://github.com/JuanGrauMen/ISO_Avicontrol_M03/pull/7 — pendiente de revisión y merge por el equipo.
-- [ ] Decidir si `docs/diagramas/Modulo3_v1.drawio.png` (3,5 MB) se queda en el repo; si no, retirarlo antes del merge.
+- [ ] Decidir si `docs/diagramas/Modulo3_v1.drawio.png` (3,5 MB) se queda en el repo; si no, retirarlo antes del merge del PR #7.
 - [ ] Tras el merge a `develop`, PR de `develop` a `main`.
