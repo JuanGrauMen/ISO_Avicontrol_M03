@@ -20,8 +20,9 @@ Cuando dos documentos se contradicen, manda el de más arriba:
 
 1. `docs/specs/features/modulo3/spec.md` — índice **normativo** del módulo: glosario, RT-01..RT-08, modelo de integración, CA-G, SC, decisiones D-01..D-07.
 2. `docs/specs/features/modulo3/m3-cuNN-*/spec.md` — spec autocontenido de cada caso de uso.
-3. `docs/specs/features/modulo3/CAMBIOS.md` — justificación de cada desviación respecto a versiones anteriores y al documento raíz.
-4. `docs/AVICONTROL.md` — documento raíz del profesor. Define el alcance global de los tres módulos, **pero el spec de M3 se aparta de él deliberadamente** en los puntos siguientes. No "corrijas" el código hacia el documento raíz.
+3. `docs/specs/features/modulo3/plan/plan-v1.md` — **plan técnico general** del módulo: arquitectura, clases, contratos de los puertos, estrategia de pruebas, tareas por CU y supuestos sobre D-01..D-07. Define el *cómo*; nunca contradice a un spec.
+4. `docs/specs/features/modulo3/CAMBIOS.md` — justificación de cada desviación respecto a versiones anteriores y al documento raíz.
+5. `docs/AVICONTROL.md` — documento raíz del profesor. Define el alcance global de los tres módulos, **pero el spec de M3 se aparta de él deliberadamente** en los puntos siguientes. No "corrijas" el código hacia el documento raíz.
 
 | Tema | Documento raíz | Spec M3 (manda) | Motivo (ver CAMBIOS.md) |
 | :--- | :--- | :--- | :--- |
@@ -58,6 +59,7 @@ docs/
     ├── templates/                         # spec-template.md, plan-template.md, sdd-guide.MD
     └── features/modulo3/
         ├── spec.md                        # ÍNDICE NORMATIVO: glosario, RT, CA-G, SC, D-01..D-07
+        ├── plan/plan-v1.md                # PLAN TÉCNICO GENERAL de los 9 CU (arquitectura, clases, tareas), versionado
         ├── CAMBIOS.md                     # registro de cambios conceptuales y sus motivos
         ├── m3-cu01-lista-galpones/spec.md
         ├── m3-cu03-generar-liquidacion/spec.md
@@ -72,15 +74,15 @@ src/main/java/co/edu/unimagdalena/avicontrol/   # código (vacío por ahora)
 src/test/java/co/edu/unimagdalena/avicontrol/   # pruebas (vacío por ahora)
 ```
 
-Cada CU tiene su carpeta y su `spec.md` es autocontenido. **No existe M3-CU02**: se unificó en CU03 el 2026-09-21 (ver `CAMBIOS.md` §7); el ID queda vacante a propósito. El PLAN de cada CU se guarda como `plan.md` **en la misma carpeta** del spec.
+Cada CU tiene su carpeta y su `spec.md` es autocontenido. **No existe M3-CU02**: se unificó en CU03 el 2026-09-21 (ver `CAMBIOS.md` §7); el ID queda vacante a propósito. El PLAN es **uno solo para el módulo** (`plan/plan-v1.md`, decidido el 2026-09-21; las versiones siguientes van en la misma carpeta como `plan-v2.md`, etc., y manda la de número más alto): cubre los 9 CU con una fase de tareas por cada uno. No se crean planes por CU. En el resto de este archivo, `plan.md` significa la versión vigente del plan.
 
 ## 5. Flujo SDD (Specification-Driven Development)
 
 **No se escribe código sin spec y sin plan.** Las tres fases son secuenciales y cada una tiene un artefacto:
 
 1. **SPEC** — leer `m3-cuNN-*/spec.md` completo, más el `spec.md` índice. Si el spec contiene `[NEEDS CLARIFICATION – D-0X]`, ver §8.
-2. **PLAN** — escribir `m3-cuNN-*/plan.md` usando `docs/specs/templates/plan-template.md`. Debe cubrir todos los FR del spec, listar clases a crear, mapear cada acceptance scenario a una prueba, y declarar supuestos sobre decisiones abiertas. El plan se revisa con el equipo antes de codificar.
-3. **Implementación** — Java 17 + pruebas JUnit 5 que ejecutan los acceptance scenarios tal cual están escritos. Se implementa un CU por rama.
+2. **PLAN** — leer la fase del CU en `docs/specs/features/modulo3/plan/plan-v1.md` (plan general escrito a partir de `docs/specs/templates/plan-template.md`). Ahí están las clases a crear, la cobertura FR → clase, el mapa acceptance scenario → `@Test`, el fixture `CasoDorado` y los supuestos sobre decisiones abiertas. Si al implementar el plan resulta insuficiente o incorrecto para ese CU, se corrige el `plan.md` (y se revisa con el equipo) antes de seguir; no se improvisa en código.
+3. **Implementación** — Java 17 + pruebas JUnit 5 que ejecutan los acceptance scenarios tal cual están escritos. Se implementa un CU por rama, siguiendo las tareas `T0NN` de su fase.
 
 **Orden de implementación:** `CU07 → CU10` (sincronización y copia local) → `CU01` → `CU03` → `CU04` → `CU05` y `CU06` en paralelo.
 
@@ -150,14 +152,14 @@ Cuando una tarea toque una decisión abierta:
 
 **Identificadores.** Los UUID de galpón, lote, alerta y resultado de sacrificio son `java.util.UUID`; M3 no los genera, los recibe de M1/M2. Los IDs propios de M3 (`idVenta`, `idLiquidacion`) sí los genera M3.
 
-**Estructura de paquetes** (propuesta base; el plan de cada CU puede refinarla, documentándolo):
+**Estructura de paquetes** (el detalle clase por clase está en `plan.md`, sección *Project Structure*):
 
 ```text
 co.edu.unimagdalena.avicontrol
-├── domain/          # entidades del glosario: Liquidacion, partidas de costo, estados, value objects
-├── sync/            # copia local sincronizada y puertos hacia M1/M2 (CU07–CU10)
-├── application/     # casos de uso CU01, CU03–CU06 como servicios
-└── shared/          # utilidades de dinero, redondeo, fechas
+├── domain/          # entidades del glosario: Liquidacion, partidas de costo, estados, fórmulas, elegibilidad
+├── sync/            # bitácora, estado de sincronización, planificador; sync/m1 y sync/m2: copia local y puertos (CU07–CU10)
+├── application/     # casos de uso CU01, CU03–CU06 como servicios, con sus vistas de solo lectura y excepciones
+└── shared/          # Rounding (único lugar de setScale)
 ```
 
 - Cada entidad del glosario es **una clase** con **ese nombre** (`Liquidacion`). No crear `MatrizVentas`, `Reporte`, `Venta`, `Desglose` como entidades: la Matriz de Venta Final es una vista de `Liquidacion`.
@@ -194,7 +196,7 @@ co.edu.unimagdalena.avicontrol
 ## 12. Checklist de fin de tarea
 
 - [ ] `mvn test` ejecutado y todas las pruebas pasan (pegar el resumen de surefire).
-- [ ] Existe `plan.md` del CU y el código cubre todos sus FR.
+- [ ] La fase del CU en `plan.md` está completa (tareas `T0NN` tachadas) y el código cubre todos los FR listados en su tabla de cobertura.
 - [ ] Cada acceptance scenario del spec tiene su `@Test` con `@DisplayName("CUNN-AS-XX …")` y pasa con los valores del spec.
 - [ ] Glosario, RT-01..RT-08 y modelo de integración respetados; sin entidades ni sinónimos nuevos.
 - [ ] Fórmulas correctas: Venta Bruta sobre peso total; Mortalidad sobre poblaciones de M1; sin promedios de precio.
