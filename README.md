@@ -33,17 +33,16 @@ El Módulo 3 se encarga de determinar la rentabilidad real de cada lote avícola
 
 #### 🧑‍💼 Funcionales (Administrador Financiero)
 1. **M3-CU01 – Consultar Lista de Galpones (P1):** Consulta del estado operativo y población viva actual de los galpones.
-2. **M3-CU02 – Registrar Matriz de Ventas (P1):** Registro comercial valorizado (pollos vendidos, peso total y precio/kg en COP).
-3. **M3-CU03 – Generar Liquidación del Lote (P1):** Cálculo de Venta Bruta, Mortalidad, Costos Operativos y Utilidad Neta.
-4. **M3-CU04 – Anular Documento Financiero (P1):** Flujo formal de anulación de ventas o liquidaciones con justificación y auditoría.
-5. **M3-CU05 – Consultar Desglose de Ventas y Gastos (P2):** Detalle auditado por partida y exportación a formato Excel (.xlsx).
-6. **M3-CU06 – Consultar Historial de Liquidaciones (P3):** Consulta histórica con filtros por fecha y galpón para análisis comparativo entre ciclos.
+2. **M3-CU03 – Generar Liquidación del Lote (P1):** Ingreso del precio/kg y cálculo de Venta Bruta, Mortalidad, Costos Operativos y Utilidad Neta, presentados como Matriz de Venta Final.
+3. **M3-CU04 – Anular Liquidación (P1):** Flujo formal de anulación de liquidaciones con justificación y auditoría.
+4. **M3-CU05 – Consultar Desglose de Ventas y Gastos (P2):** Detalle auditado por partida y exportación a formato Excel (.xlsx).
+5. **M3-CU06 – Consultar Historial de Liquidaciones (P3):** Consulta histórica con filtros por fecha y galpón para análisis comparativo entre ciclos.
 
 #### 🔌 Integración Externa (Módulos 1 y 2)
-7. **M3-CU07 – Consultar Población y Costo del Lote al Módulo 1 (P1)**
-8. **M3-CU08 – Consultar Resultado Final de Sacrificio al Módulo 2 (P1)**
-9. **M3-CU09 – Consultar Alimento del Lote al Módulo 2 (P1)**
-10. **M3-CU10 – Consultar Medicina Consumida al Módulo 2 (P1)**
+6. **M3-CU07 – Consultar Galpón y Lote al Módulo 1 (P1)**
+7. **M3-CU08 – Consultar Resultado Final de Sacrificio al Módulo 2 (P1)**
+8. **M3-CU09 – Consultar Alimento Requerido al Módulo 2 (P1)**
+9. **M3-CU10 – Consultar Consumo de Medicamento al Módulo 2 (P1)**
 
 ---
 
