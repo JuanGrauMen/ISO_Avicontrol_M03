@@ -1,4 +1,4 @@
-# Feature Specification: M3-CU02 – Registrar Matriz de Ventas
+# Feature Specification: M3-CU02 – Registrar Liquidación 
 
 **Created**: 2026-08-31  
 **Actualizado**: 2026-09-18  
