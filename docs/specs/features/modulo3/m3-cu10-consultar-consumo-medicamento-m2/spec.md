@@ -1,6 +1,7 @@
-# Feature Specification: M3-CU10 – Consultar Medicina Consumida al Módulo 2
+# Feature Specification: M3-CU10 – Consultar Consumo de Medicamento al Módulo 2
 
 **Created**: 2026-09-18  
+**Actualizado**: 2026-09-21  
 **Módulo**: 3 – Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)  
 **Actor Externo**: Módulo 2 – Gestión Operativa del Ciclo  
 **Rol Principal**: Módulo 3 (proceso automático de sincronización)  

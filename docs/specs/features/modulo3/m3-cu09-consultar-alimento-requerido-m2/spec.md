@@ -1,6 +1,7 @@
-# Feature Specification: M3-CU09 – Consultar Alimento del Lote al Módulo 2
+# Feature Specification: M3-CU09 – Consultar Alimento Requerido al Módulo 2
 
 **Created**: 2026-09-18  
+**Actualizado**: 2026-09-21  
 **Módulo**: 3 – Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)  
 **Actor Externo**: Módulo 2 – Gestión Operativa del Ciclo  
 **Rol Principal**: Módulo 3 (proceso automático de sincronización)  
@@ -48,6 +49,7 @@ Como Módulo 3, quiero consultar a Módulo 2 las partidas de alimento asociadas 
 
 ### Edge Cases
 
+- **Nombre del caso de uso**: "Alimento requerido" replica el nombre del caso de uso que Módulo 2 expone hacia M3 (*Consultar alimento requerido por galpón*) para que ambos diagramas coincidan. El nombre **no** cierra la decisión D-01: el criterio de costeo sigue pendiente y esta especificación se mantiene en términos neutros.
 - **M3 no calcula en la sincronización**: Esta especificación obtiene y almacena cantidad y precio unitario. La multiplicación `cantidad × precio unitario` y la consolidación del Costo de Alimento son responsabilidad exclusiva de M3-CU03 (regla transversal RT-07).
 - **Precios distintos para el mismo tipo de alimento**: Cuando una misma cantidad proviene de recepciones con precios diferentes, el sistema conserva cada tramo con su precio propio y **no promedia precios**. Esta separación es la que permite el desglose por línea de M3-CU05.
 - **Impuestos**: Módulo 2 informa el valor neto y el impuesto por separado. M3 almacena ambos y no los consolida hasta que se defina su tratamiento.

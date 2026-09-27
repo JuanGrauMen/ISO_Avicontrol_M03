@@ -1,6 +1,7 @@
-# Feature Specification: M3-CU07 – Consultar Población y Costo del Lote al Módulo 1
+# Feature Specification: M3-CU07 – Consultar Galpón y Lote al Módulo 1
 
 **Created**: 2026-09-18  
+**Actualizado**: 2026-09-21  
 **Módulo**: 3 – Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)  
 **Actor Externo**: Módulo 1 – Gestión de Galpones y Lotes  
 **Rol Principal**: Módulo 3 (proceso automático de sincronización)  

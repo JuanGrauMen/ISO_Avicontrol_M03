@@ -1,7 +1,7 @@
 # Feature Specification: M3-CU05 – Consultar Desglose de Ventas y Gastos
 
 **Created**: 2026-08-31  
-**Actualizado**: 2026-09-18  
+**Actualizado**: 2026-09-21  
 **Módulo**: 3 – Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)  
 **Rol Principal**: Administrador Financiero  
 
@@ -28,7 +28,7 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 2. **Scenario**: Exportación exitosa a archivo Excel
    - **Given** se visualiza en pantalla el desglose de una Liquidación `ACTIVA`
    - **When** el usuario presiona "Exportar a Excel"
-   - **Then** el sistema genera y descarga un archivo `.xlsx` que contiene el resultado final de sacrificio de Módulo 2, la Matriz de Ventas, los indicadores consolidados (Venta Bruta, Mortalidad del Lote, Costos Operativos, Utilidad Neta) y la tabla de desglose completa con los mismos valores de pantalla
+   - **Then** el sistema genera y descarga un archivo `.xlsx` que contiene la Matriz de Venta Final —resultado final de sacrificio de Módulo 2, precio por kg y los indicadores consolidados (Venta Bruta, Mortalidad del Lote, Costos Operativos, Utilidad Neta)— y la tabla de desglose completa con los mismos valores de pantalla
 
 3. **Scenario**: Consulta de desglose sobre una Liquidación anulada
    - **Given** una Liquidación en estado `ANULADA`
@@ -41,7 +41,7 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
    - **Then** el sistema notifica el error mediante un mensaje claro y ofrece reintentar, sin alterar ni perder la vista de datos en pantalla
 
 5. **Scenario**: Desglose de una Liquidación de siniestro total
-   - **Given** una Liquidación `ACTIVA` de siniestro total, sin Matriz de Ventas asociada
+   - **Given** una Liquidación `ACTIVA` de siniestro total, sin resultado final de sacrificio ni precio por kg
    - **When** el usuario consulta su desglose
    - **Then** el sistema presenta las partidas de costo del ciclo y muestra la sección de ingresos con Venta Bruta igual a \$0 COP, indicando explícitamente que el lote no registró venta
 
@@ -61,12 +61,12 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 ### Functional Requirements
 
 - **FR-001**: El sistema MUST mostrar el desglose de la Liquidación agrupado en las siguientes categorías:
-  - **Ingresos**: datos de la Matriz de Ventas (pollos vendidos, peso total kg, peso promedio kg, precio por kg y Venta Bruta). En siniestro total, la sección se presenta con Venta Bruta igual a \$0 COP.
+  - **Ingresos**: datos de venta de la Liquidación (pollos vendidos, peso total kg, peso promedio kg, precio por kg y Venta Bruta), tal como se presentan en la Matriz de Venta Final. En siniestro total, la sección se presenta con Venta Bruta igual a \$0 COP.
   - **Alimento**: detalle por partida y tipo (Pre-inicio, Inicio, Engorde, etc.) con cantidad, precio aplicado por kg y subtotal en COP.
   - **Insumos Médicos**: detalle por consumo de medicamento o vacuna con cantidad en unidad base, unidad de medida, precio unitario histórico y subtotal en COP.
   - **Población Inicial**: costo total del lote informado por Módulo 1, no acumulativo.
 - **FR-002**: La suma de los subtotales de todas las partidas de costo MUST ser idéntica al peso al campo `costosOperativosCop` de la Liquidación (cero discrepancias).
-- **FR-003**: El sistema MUST proveer exportación a formato Excel (`.xlsx`) con la información del lote, el resultado final de sacrificio, la Matriz de Ventas, los indicadores consolidados y el desglose de costos.
+- **FR-003**: El sistema MUST proveer exportación a formato Excel (`.xlsx`) con la información del lote, la Matriz de Venta Final (resultado final de sacrificio, precio por kg e indicadores consolidados) y el desglose de costos.
 - **FR-004**: Para Liquidaciones en estado `ANULADA`, el sistema MUST restringir la vista a solo lectura, presentar un encabezado visual prominente de anulación con los datos del registro de anulación (M3-CU04) y deshabilitar la exportación a Excel.
 - **FR-005**: Ante fallas en la exportación, el sistema MUST capturar el error, informar al usuario y habilitar el reintento sin degradar la sesión activa.
 - **FR-006**: El sistema MUST construir el desglose exclusivamente a partir de la Liquidación y de sus partidas de costo almacenadas en M3, sin requerir consultas a Módulo 1 ni a Módulo 2.
@@ -76,7 +76,6 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 
 - **Liquidacion**: Documento de resultado consultado por esta especificación. Definida en M3-CU03.
 - **PartidaCostoLote**: Partida de costo valorizada asociada al ciclo del lote, origen de cada fila del desglose. Definida en M3-CU03.
-- **MatrizVentas**: Documento de ingreso, origen de la sección de ingresos del desglose. Definida en M3-CU02.
 - **ArchivoExportacion**: Documento generado en formato `.xlsx`, con metadatos de exportación (`nombreArchivo`, `fechaHoraExportacion`, `usuarioGenerador`). No contiene datos financieros propios.
 
 > **Nota**: La entidad `DesgloseLiquidacion` de la versión anterior de esta especificación se elimina. El desglose se modela como proyección derivada para evitar la duplicación de datos y el riesgo de descuadre frente a la Liquidación (FR-002).
