@@ -19,10 +19,10 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 
 **Acceptance Scenarios**:
 
-1. **Scenario**: Visualización de galpones con datos completos
+1. **Scenario**: Visualización de galpones con datos completos y mortalidad
    - **Given** existen galpones en la copia local sincronizada, con origen en Módulo 1 (M3-CU07)
    - **When** el administrador financiero accede al listado de galpones
-   - **Then** el sistema muestra cada galpón con su UUID, nombre, estado actual (`Disponible`, `Vaciado Sanitario`, `Productivo`, `En Cosecha`, `Mantenimiento`, `Aislamiento`) y, cuando exista un lote activo, su UUID, nombre y fecha de ingreso, junto con la fecha y hora de la última sincronización
+   - **Then** el sistema muestra cada galpón con su UUID, nombre, estado actual (`Disponible`, `Vaciado Sanitario`, `Productivo`, `En Cosecha`, `Mantenimiento`, `Aislamiento`) y, cuando exista un lote activo, su UUID, nombre, fecha de ingreso y el porcentaje de mortalidad acumulada calculado (`((poblacionInicial - poblacionActual) / poblacionInicial) * 100`), junto con la fecha y hora de la última sincronización. El sistema permite filtrar la lista de galpones por estado operativo.
 
 2. **Scenario**: Selección de galpón en cosecha para seguimiento del cierre
    - **Given** se visualiza la lista y existe un galpón con lote activo en estado `En Cosecha`
@@ -63,8 +63,8 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 
 ### Functional Requirements
 
-- **FR-001**: El sistema MUST mostrar desde su copia local sincronizada la lista de galpones con UUID, nombre, estado operativo y fecha y hora de última sincronización. Cuando el galpón tenga lote activo, MUST mostrar además UUID y nombre del lote y su fecha de ingreso. El aforo máximo, la edad en días y las poblaciones inicial y actual NO se muestran en esta lista: se conservan en la copia local (M3-CU07) para los cálculos de M3-CU03.
-- **FR-002**: El sistema MUST tomar el estado operativo, la población inicial y la población actual cuyo origen es Módulo 1 como fuente oficial de verdad para habilitar o bloquear las acciones financieras, aunque las poblaciones no se muestren en la lista. Módulo 1 actualiza la población actual con base en la mortalidad que le comunica Módulo 2. La vista del usuario DEBE alimentarse de la copia local mantenida por M3-CU07, sin depender de una conexión en vivo con Módulo 1.
+- **FR-001**: El sistema MUST mostrar desde su copia local sincronizada la lista de galpones con UUID, nombre, estado operativo y fecha y hora de última sincronización. Cuando el galpón tenga lote activo, MUST mostrar además UUID y nombre del lote, su fecha de ingreso y el porcentaje de mortalidad acumulada calculado (`((poblacionInicial - poblacionActual) / poblacionInicial) * 100`, con 2 decimales según RT-02). El aforo máximo, la edad en días y las poblaciones absolutas inicial y actual NO se muestran en esta lista: se conservan en la copia local (M3-CU07) para los cálculos de M3-CU03. El sistema MUST permitir filtrar la lista de galpones por su estado operativo.
+- **FR-002**: El sistema MUST tomar el estado operativo, la población inicial y la población actual cuyo origen es Módulo 1 como fuente oficial de verdad tanto para calcular el porcentaje de mortalidad visible en la lista como para habilitar o bloquear las acciones financieras. Módulo 1 actualiza la población actual con base en la mortalidad que le comunica Módulo 2. La vista del usuario DEBE alimentarse de la copia local mantenida por M3-CU07, sin depender de una conexión en vivo con Módulo 1.
 - **FR-003**: El sistema MUST admitir únicamente el siguiente catálogo unificado de estados operativos:
   - `Disponible`: galpón sin lote activo (no accionable financieramente).
   - `Vaciado Sanitario`: galpón sin aves después de la cosecha. Permite generar la Liquidación a partir de un resultado final válido de Módulo 2; también permite liquidar sin resultado de sacrificio únicamente en mortalidad total con población actual igual a 0.
