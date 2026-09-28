@@ -22,7 +22,7 @@ Como administrador financiero, quiero generar la Liquidación económica definit
 1. **Scenario**: Generación exitosa de Liquidación definitiva (Caso Dorado)
    - **Given** una alerta de vaciado sanitario que conserva los UUID de un galpón y su lote, con Población Inicial sincronizada de 9.000 aves y Población Actual sincronizada de 8.500 aves (origen M1), un resultado final de sacrificio sincronizado desde M2 de 8.500 pollos y 23.800 kg totales, y Costos Operativos valorizados de \$85.000.000 COP (alimento, medicina y costo inicial de pollitos)
    - **When** el administrador financiero ingresa un precio de \$4.500 COP/kg y solicita generar la Liquidación
-   - **Then** el sistema calcula y presenta la Matriz de Venta Final:
+   - **Then** el sistema calcula y presenta la Liquidación Final:
      - **Venta Bruta**: \$107.100.000 COP (`23.800 kg × 4.500`)
      - **Mortalidad del Lote**: 500 aves (`9.000 − 8.500`), equivalente al 5,56% (`(500 / 9.000) × 100`)
      - **Costos Operativos**: \$85.000.000 COP
