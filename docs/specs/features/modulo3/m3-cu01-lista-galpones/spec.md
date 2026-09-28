@@ -49,13 +49,30 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
    - **When** el administrador consulta la lista de galpones
    - **Then** el sistema muestra la última copia local disponible, identifica su fecha y hora de actualización y reintenta la consulta en segundo plano sin interrumpir la vista ni los demás módulos
 
+7. **Scenario**: Filtrado por estado sin coincidencias
+   - **Given** se visualiza la lista de galpones y el usuario selecciona un estado del catálogo (`Disponible`, `Vaciado Sanitario`, `Productivo`, `En Cosecha`, `Mantenimiento`, `Aislamiento`)
+   - **When** ningún galpón de la copia local corresponde a ese estado
+   - **Then** el sistema muestra el mensaje "No se encontraron resultados"
+
+8. **Scenario**: Búsqueda por nombre o UUID sin coincidencias
+   - **Given** se visualiza la lista de galpones y el usuario ingresa un término de búsqueda por nombre de galpón, nombre de lote o UUID
+   - **When** ningún registro de la copia local coincide con el término ingresado
+   - **Then** el sistema muestra el mensaje "No se encontraron resultados"
+
+9. **Scenario**: Paginación de la lista
+   - **Given** la copia local sincronizada contiene más de 6 galpones
+   - **When** el administrador financiero accede al listado
+   - **Then** el sistema muestra únicamente los primeros 6 registros, sin importar el total disponible, y presenta al pie de la lista de resultados la cantidad mostrada frente al total (por ejemplo, "6 de 7 galpones"); el usuario avanza a los registros restantes mediante una acción explícita de paginación
+
 ---
 
-### Edge Cases
+#### Edge Cases
 
 - **Galpón con población actual igual a 0 en estado `Productivo` o `En Cosecha`**: El sistema permite visualizarlo pero no habilita la Liquidación, porque el galpón aún no está en `Vaciado Sanitario`.
 - **Transición de estado concurrente**: Si el estado del galpón cambia en Módulo 1, el cambio se refleja en la siguiente sincronización. Las acciones en M3 se validan contra la copia local vigente, sin requerir consulta en vivo a Módulo 1.
 - **Población actual distinta de cero en `Vaciado Sanitario`**: Módulo 1 no exige población cero para transicionar a `Vaciado Sanitario`, por lo que un galpón puede encontrarse en ese estado con población actual mayor a 0. Esa diferencia representa aves vendidas, no una inconsistencia, y no bloquea las acciones financieras.
+- **Filtro y búsqueda combinados**: Si el usuario aplica un filtro por estado y además ingresa un término de búsqueda, ambos criterios se combinan; el mensaje de FR-010 aplica igual si la combinación no retorna resultados.
+- **Paginación tras aplicar filtro o búsqueda**: Al cambiar el filtro por estado o el término de búsqueda, el sistema MUST reiniciar la paginación en la primera página.
 
 ---
 
@@ -78,6 +95,11 @@ Como administrador financiero, quiero consultar la lista consolidada de galpones
 - **FR-005**: El sistema MUST mostrar las acciones de la fila deshabilitadas (no ocultas) cuando no apliquen, y MUST deshabilitar las acciones financieras en estados diferentes de `Vaciado Sanitario`; MUST deshabilitar la generación de la Liquidación cuando no exista resultado final válido, excepto el siniestro total autorizado con población actual igual a 0.
 - **FR-006**: Ante la ausencia de registros de galpones, el sistema MUST mostrar un estado vacío claro y mantener bloqueada cualquier acción posterior.
 - **FR-007**: El sistema MUST alimentarse exclusivamente de la copia local mantenida por el proceso de sincronización definido en **M3-CU07**. Esta especificación NO DEBE definir accesos propios a Módulo 1.
+- **FR-008**: El sistema MUST permitir filtrar la lista de galpones por un único estado del catálogo definido en FR-003, o por la opción "Todos".
+- **FR-009**: El sistema MUST permitir buscar galpones por nombre de galpón, nombre de lote o UUID, sobre la copia local sincronizada.
+- **FR-010**: Cuando el filtro por estado o la búsqueda no retornen ningún galpón, el sistema MUST mostrar el mensaje "No se encontraron resultados". Este mensaje es distinto del definido en FR-006, que aplica exclusivamente cuando la copia local no contiene ningún galpón registrado.
+- **FR-011**: El sistema MUST mostrar como máximo 6 galpones por página, sin importar cuántos registros resulten del filtro o búsqueda aplicados. Si el total de registros es mayor a 6, el sistema MUST paginar y mostrar únicamente los primeros 6 en la página inicial.
+- **FR-012**: El sistema MUST indicar, al pie de la lista de resultados, la cantidad de galpones mostrados en la página actual frente al total de registros disponibles (por ejemplo, "6 de 7 galpones").
 
 ### Key Entities
 

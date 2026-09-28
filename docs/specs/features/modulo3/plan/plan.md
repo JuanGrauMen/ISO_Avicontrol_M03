@@ -264,7 +264,7 @@ Cada puerto se implementa con un adaptador REST (`RestClient` de Spring Boot) qu
 docs/specs/features/modulo3/
 ├── spec.md                      # índice normativo
 ├── plan/
-│   └── plan-v2.md               # este archivo
+│   └── plan.md                  # este archivo
 ├── CAMBIOS.md
 └── m3-cuNN-*/spec.md            # un spec por caso de uso
 ```
@@ -336,6 +336,7 @@ src/main/java/co/edu/unimagdalena/avicontrol/
 │   │       └── AvisoUtilizacionService.java   # CU08 (aviso saliente)
 │   └── dto/
 │       ├── GalponResumenDto.java
+│       ├── GalponPageDto.java
 │       ├── LiquidacionDto.java
 │       ├── DesgloseDto.java
 │       ├── HistorialFiltroDto.java
@@ -514,23 +515,23 @@ src/test/java/co/edu/unimagdalena/avicontrol/
 
 ## Phase 5: CU01 – Lista de Galpones (Priority: P1)
 
-**Goal**: El administrador financiero consulta la lista de galpones con mortalidad % y filtra por estado. Acciones habilitadas/deshabilitadas según estado.
+**Goal**: El administrador financiero consulta la lista de galpones con porcentaje de mortalidad acumulada `((inicial - actual) / inicial) * 100`, filtrado por estado del catálogo (o "Todos"), búsqueda textual (por nombre de galpón, nombre de lote o UUID) y paginación (máximo 6 galpones por página). Muestra el mensaje "No se encontraron resultados" cuando no existen coincidencias. Las acciones están habilitadas/deshabilitadas según el estado.
 
-**Independent Test**: GET lista → verificar campos, mortalidad %, filtro por estado, acciones según estado.
+**Independent Test**: GET `/api/v1/galpones` → verificar porcentaje de mortalidad, filtrado por estado sin/con coincidencias, búsqueda textual sin/con coincidencias, paginación (6 ítems/pág) y indicador de progreso.
 
 ### Tests para CU01
 
-- [ ] T036 [P] [CU01] Unit test `ListarGalponesServiceTest.java`: datos completos con mortalidad %, filtro por estado, estado vacío, acciones habilitadas/deshabilitadas por estado
-- [ ] T037 [P] [CU01] Integration test `GalponControllerTest.java`: GET `/api/v1/galpones`, filtro `?estado=VACIADO_SANITARIO`, respuesta JSON con campos esperados
+- [ ] T036 [P] [CU01] Unit test `ListarGalponesServiceTest.java`: datos completos con mortalidad %, filtro por estado del catálogo, filtrado por estado sin coincidencias ("No se encontraron resultados"), búsqueda por nombre/UUID sin coincidencias, paginación a 6 galpones por página, reinicio de paginación al cambiar filtro, y acciones habilitadas/deshabilitadas según estado.
+- [ ] T037 [P] [CU01] Integration test `GalponControllerTest.java`: GET `/api/v1/galpones?estado=VACIADO_SANITARIO&search=Galpon1&page=0&size=6`, respuesta JSON paginada con totalElements, content y mensaje de no coincidencia si aplica.
 
 ### Implementation para CU01
 
 - [ ] T038 [CU01] Crear `ListarGalponesUseCase.java` (interfaz en `domain/port/in/`)
-- [ ] T039 [CU01] Crear `ListarGalponesService.java`: consulta copia local, calcula mortalidad %, determina acciones según estado y existencia de resultado/liquidación
-- [ ] T040 [CU01] Crear `GalponResumenDto.java` con campos: idGalpon, nombre, estado, idLote, nombreLote, fechaIngreso, porcentajeMortalidad, fechaHoraSync, accionesDisponibles
-- [ ] T041 [CU01] Crear `GalponController.java`: GET `/api/v1/galpones?estado={estado}`
+- [ ] T039 [CU01] Crear `ListarGalponesService.java`: consulta copia local, aplica filtro por estado y término de búsqueda (nombre galpón, nombre lote, UUID), calcula porcentaje de mortalidad acumulada `((inicial - actual) / inicial) * 100`, determina acciones según estado y existencia de resultado/liquidación, aplica paginación a 6 ítems/página y construye mensaje "No se encontraron resultados" si la lista filtrada es vacía.
+- [ ] T040 [CU01] Crear `GalponResumenDto.java` (idGalpon, nombre, estado, idLote, nombreLote, fechaIngreso, porcentajeMortalidad, fechaHoraSync, accionesDisponibles) y `GalponPageDto.java` (content, page, size, totalElements, totalPages, mensaje).
+- [ ] T041 [CU01] Crear `GalponController.java`: GET `/api/v1/galpones?estado={estado}&search={q}&page={page}&size={size}` (valores por defecto: page=0, size=6).
 
-**Checkpoint**: Lista de galpones funcional. Mortalidad % visible. Filtro por estado operativo.
+**Checkpoint**: Lista de galpones funcional. Búsqueda, filtrado por estado, paginación (6 p/pág) y mensaje "No se encontraron resultados" verificados.
 
 ---
 
