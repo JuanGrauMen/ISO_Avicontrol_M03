@@ -131,7 +131,6 @@ Como administrador financiero, quiero generar la Liquidación económica definit
 - **SnapshotDatosOrigen**: Datos sincronizados utilizados para una Liquidación. Atributos: `idLiquidacion`, `idLote`, `fuente` (`MODULO_1` | `MODULO_2`), `fechaHoraSincronizacion` y referencias a las poblaciones, al resultado de sacrificio y a las partidas de costo empleadas.
 - **AlertaVaciadoSanitario**: Evento registrado por Módulo 1 que conserva `idAlerta`, `idGalpon`, `idLote` y `fechaHoraEvento` después de desvincular el lote del galpón; es la referencia que identifica al lote liquidable.
 
-> **Nota**: La entidad `MatrizVentas` del antiguo M3-CU02 se elimina. Sus atributos de venta (`pollosVendidos`, `pesoTotalKg`, `pesoPromedioKg`, `precioKgCop`) pasan a `Liquidacion`. La Matriz de Venta Final es la presentación de esta entidad, no una entidad propia.
 
 ---
 
