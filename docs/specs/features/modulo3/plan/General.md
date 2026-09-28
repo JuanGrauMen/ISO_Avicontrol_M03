@@ -13,7 +13,7 @@ Este documento define la arquitectura, las tecnologías y las reglas técnicas c
 | --- | --- | --- |
 | Lenguaje | Java 21 (LTS) | Dominio, casos de uso, adaptadores y pruebas |
 | Framework principal | Spring Boot 3.3.x | Configuración, ejecución y composición de la aplicación REST |
-| Construcción | Gradle(`pom.xml`) | Gestión de dependencias, compilación y empaquetado |
+| Construcción | Gradle | Gestión de dependencias, compilación y empaquetado |
 | API HTTP | Spring Web MVC | Controladores REST síncronos |
 | Validación | Jakarta Bean Validation | Validación de DTOs en adaptadores de entrada |
 | Seguridad | Spring Security | Autenticación JWT y autorización por rol |
