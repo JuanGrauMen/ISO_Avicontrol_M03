@@ -1,97 +1,105 @@
 # General — Arquitectura y Stack Tecnológico
 
 **Estado**: Referencia técnica transversal del Módulo 3  
-**Fecha**: 28/09/2026  
+**Fecha**: 28/09/2026
 
 ## Propósito
 
-Este documento define la arquitectura, las tecnologías y las reglas técnicas comunes de AviControl Módulo 3 (Liquidación de Lote y Análisis de Rentabilidad). Es la fuente única para estas decisiones: los planes técnicos de cada caso de uso (specs) deben enlazar este archivo y documentar únicamente su alcance, modelos, reglas específicas y tareas de implementación.
+Este documento define la arquitectura, las tecnologías y las reglas técnicas comunes de AviControl Módulo 3 (Liquidación de Lote y Análisis de Rentabilidad). Es la fuente única para estas decisiones: los planes técnicos por caso de uso deben enlazar este archivo y documentar únicamente su alcance, modelos, contratos y tareas de implementación.
 
 ## Stack Tecnológico
 
 | Área | Tecnología adoptada | Uso en el proyecto |
 | --- | --- | --- |
-| Lenguaje | Java 21 (LTS) | Dominio, servicios, adaptadores y pruebas |
-| Framework principal | Spring Boot 3.3.x | Configuración, ejecución y composición de la aplicación |
-| Construcción | Maven (`pom.xml`) | Gestión de dependencias, compilación, pruebas y empaquetado |
-| API HTTP | Spring Web MVC | Controladores REST API síncronos (`API/`) |
-| Eventos entre módulos | Apache Kafka (`spring-kafka`) | Integración asíncrona y transmisión de eventos entre módulos |
-| Validación | Jakarta Bean Validation | Validación de DTOs en la capa de entrada `API` |
-| Seguridad | Spring Security | Autenticación JWT, protección de endpoints y autorización por rol (`ROLE_FINANCIERO`) |
-| Persistencia | Spring Data JPA e Hibernate | Adaptadores de persistencia relacional (`adapters/`) |
-| Base de datos | PostgreSQL (prod) / H2 (dev/test) | Almacenamiento de copia local (M1/M2) y registros de liquidación |
-| Migraciones | Flyway (`flyway-core`) | Versionamiento y aplicación ordenada del esquema SQL |
-| Exportación de reportes | Apache POI `poi-ooxml:5.2.5` | Generación de reportes en Excel de desglose de ventas y gastos (CU05) |
-| Serialización | Jackson | JSON para la API REST y contratos de integración con Kafka |
-| Documentación API | OpenAPI 3 (`springdoc-openapi`) | Descripción verificable e interactiva de endpoints y DTOs |
-| Pruebas unitarias | JUnit 5 y Mockito | Reglas de dominio y servicios aislados |
-| Pruebas HTTP / Integración | Spring Boot Test y MockRestServiceServer | Contratos de API REST, clientes M1/M2 y controladores |
-| Pruebas de integración | Testcontainers (PostgreSQL) y H2 | Pruebas de integración contra base de datos real / H2 en memoria |
-| Utilidades | Lombok | Reducción de código repetitivo sin ocultar reglas de negocio |
-| Calidad y arquitectura | Spotless y ArchUnit | Formato uniforme de código y verificación de límites arquitectónicos |
-| Observabilidad | Spring Boot Actuator y Micrometer | Salud (`/actuator/health`), métricas y diagnóstico operativo |
-| Entorno local | Docker Compose | PostgreSQL y Apache Kafka para desarrollo y pruebas locales |
+| Lenguaje | Java 21 (LTS) | Dominio, casos de uso, adaptadores y pruebas |
+| Framework principal | Spring Boot 3.3.x | Configuración, ejecución y composición de la aplicación REST |
+| Construcción | Maven (`pom.xml`) | Gestión de dependencias, compilación y empaquetado |
+| API HTTP | Spring Web MVC | Controladores REST síncronos |
+| Validación | Jakarta Bean Validation | Validación de DTOs en adaptadores de entrada |
+| Seguridad | Spring Security | Autenticación JWT y autorización por rol |
+| Persistencia | Spring Data JPA + Hibernate | Repositorios y entidades JPA |
+| Base de datos | PostgreSQL (prod) / H2 (dev/test) | Almacenamiento de copia local y liquidaciones |
+| Migraciones | Flyway | Versionamiento y aplicación ordenada del esquema SQL |
+| Mensajería inter-módulos | Apache Kafka + Spring Kafka | Integración asíncrona con Módulo 1 y Módulo 2 |
+| Exportación de reportes | Apache POI `poi-ooxml:5.2.5` | Generación de reportes Excel (CU05) |
+| Serialización | Jackson | JSON para API REST y contratos de integración |
+| Documentación API | OpenAPI 3 (`springdoc-openapi`) | Descripción interactiva de endpoints en `/swagger-ui.html` |
+| Pruebas unitarias | JUnit 5 y Mockito | Reglas de dominio y casos de uso aislados |
+| Pruebas de integración | Spring Boot Test + Testcontainers | PostgreSQL y Kafka reales durante las pruebas |
+| Utilidades | Lombok | Reducción de código repetitivo |
+| Calidad y arquitectura | Spotless y ArchUnit | Formato uniforme y verificación de límites entre capas |
+| Observabilidad | Spring Boot Actuator y Micrometer | Salud (`/actuator/health`) y métricas operativas |
+| Entorno local | Docker Compose | PostgreSQL y Kafka para desarrollo local |
+| Abstracción de tiempo | `java.time.Clock` | Fecha/hora inyectada para auditabilidad y pruebas deterministas |
 
-## Arquitectura Limpia por Capas (Clean Architecture)
+> **Nota sobre herramientas de construcción**: El Módulo 2 usa Gradle y el Módulo 3 usa Maven. Esto no representa ninguna incompatibilidad: la comunicación entre módulos ocurre exclusivamente a través de la red (HTTP REST y Kafka), por lo que la herramienta de build de cada módulo es un detalle interno sin impacto en la integración.
 
-El Módulo 3 adopta una **Arquitectura Limpia por Capas** basada en círculos concéntricos. La capa de dominio está en el centro, rodeada por los servicios de aplicación y, en el círculo exterior, la infraestructura (adaptadores, API REST, Spring Boot y Kafka).
+Las versiones de librerías administradas por Spring Boot se obtienen de su BOM. Solo se fija versión explícita cuando no esté administrada o exista razón técnica documentada.
 
-### Diagrama de Capas Concéntricas
+## Arquitectura Limpia por Capas
 
-```text
-       ┌────────────────────────────────────────────────────────┐
-       │                 INFRASTRUCTURE                         │
-       │  ┌──────────────────────────────────────────────────┐  │
-       │  │                   SERVICE                        │  │
-       │  │  ┌────────────────────────────────────────────┐  │  │
-       │  │  │                 DOMAIN                     │  │  │
-       │  │  │  ┌──────────────────┐ ┌─────────────────┐  │  │  │
-       │  │  │  │     entities     │ │   repository    │  │  │  │
-       │  │  │  │  (Liquidacion)   │ │  (interfaces)   │  │  │  │
-       │  │  │  └──────────────────┘ └─────────────────┘  │  │  │
-       │  │  └────────────────────────────────────────────┘  │  │
-       │  │             LiquidacionService                   │  │
-       │  └──────────────────────────────────────────────────┘  │
-       │        LiquidacionDataAdapter  │  LiquidacionController │
-       │        Spring Boot             │  Apache Kafka          │
-       └────────────────────────────────────────────────────────┘
+El Módulo 3 se implementa con **Arquitectura Limpia por Capas**. Las dependencias siempre apuntan hacia adentro: la infraestructura depende del servicio, y el servicio depende del dominio. El dominio no conoce nada de las capas externas.
+
+```
+┌─────────────────────────────────────────┐
+│            infrastructure/              │
+│  ┌──────────────────────────────────┐   │
+│  │   Spring · LiquidacionController │   │
+│  │   LiquidacionDataAdapter         │   │
+│  │  ┌───────────────────────────┐   │   │
+│  │  │       service/            │   │   │
+│  │  │   LiquidacionService      │   │   │
+│  │  │  ┌─────────────────────┐  │   │   │
+│  │  │  │      domain/        │  │   │   │
+│  │  │  │  entities:          │  │   │   │
+│  │  │  │    Liquidacion      │  │   │   │
+│  │  │  │  repository:        │  │   │   │
+│  │  │  │    LiquidacionRepo  │  │   │   │
+│  │  │  └─────────────────────┘  │   │   │
+│  │  └───────────────────────────┘   │   │
+│  └──────────────────────────────────┘   │
+└─────────────────────────────────────────┘
 ```
 
-### Estructura de Paquetes en el Proyecto (`module3`)
+### Capa `domain/`
 
-```text
-src/main/java/co/edu/unimagdalena/avicontrol/
-├── domain/
-│   ├── entities/               # Entidades de dominio puras (Liquidacion, Galpon, Lote, etc.)
-│   └── repository/             # Interfaces de repositorios (LiquidacionRepository, GalponRepository, etc.)
-├── service/                    # Servicios de aplicación con reglas de negocio (LiquidacionService, etc.)
-└── infraestructure/
-    ├── adapters/               # Adaptadores de persistencia JPA y comunicación M1/M2 (LiquidacionDataAdapter, etc.)
-    └── API/                    # Controladores REST API (LiquidacionController), Spring Security y Kafka Producers/Consumers
-```
+Contiene el modelo de negocio puro: entidades (`Liquidacion`, `Galpon`, `Lote`, etc.), enums, value objects, reglas de redondeo e interfaces de repositorio.
 
-### Descripción de las Capas
+- **Regla estricta**: Java puro. No importa Spring, JPA, Jackson, Kafka ni clases de las otras capas.
 
-1. **`domain` (Círculo Central)**:
-   - **`entities`**: Contiene las entidades puras de negocio (`Liquidacion`, `Galpon`, `Lote`, etc.) y las reglas numéricas/redondeo. No depende de Spring, JPA ni librerías externas.
-   - **`repository`**: Interfaces que definen los contratos de persistencia y consulta (`LiquidacionRepository` con métodos `save`, `update`, `delete`, `find`).
+### Capa `service/` (Aplicación)
 
-2. **`service` (Círculo Intermedio)**:
-   - Contiene la lógica de aplicación y los casos de uso (`LiquidacionService` con `generarLiquidacion()`, `anularLiquidacion()`, etc.).
-   - Coordina las entidades del dominio y hace uso de las interfaces de `repository` sin conocer los detalles de la base de datos o el transporte HTTP/Kafka.
+Contiene los servicios de aplicación que implementan los casos de uso, orquestan el dominio y coordinan la sincronización periódica con M1 y M2. Define el límite transaccional y no conoce detalles de HTTP, JPA ni Kafka.
 
-3. **`infraestructure` (Círculo Exterior)**:
-   - **`adapters`**: Implementaciones concretas de los repositorios (`LiquidacionDataAdapter` usando Spring Data JPA / Hibernate) y adaptadores de clientes externos.
-   - **`API`**: Punto de entrada del sistema. Contiene los controladores REST (`LiquidacionController`), endpoints OpenAPI, interceptores de Spring Security y escuchadores/productores de eventos de Apache Kafka.
+### Capa `infrastructure/`
+
+Contiene los adaptadores concretos:
+
+- **`adapter/rest/`**: Controladores REST API (entrada HTTP).
+- **`adapter/client/`**: Clientes REST/Kafka para consumir y publicar eventos con Módulo 1 y Módulo 2.
+- **`adapter/persistence/`**: Entidades JPA (`@Entity`), repositorios Spring Data y mappers hacia el dominio.
+- **`config/`**: Configuración de Spring Security (JWT), OpenAPI, Scheduler, Clock, Actuator.
+- **`exception/`**: Manejador global de excepciones (`@ControllerAdvice`).
 
 ## Regla de Dependencias
 
-```text
-infraestructure  ──►  service  ──►  domain
+```
+infrastructure  ──►  service  ──►  domain
 ```
 
-- **Límites de dependencias**:
-  - `domain` no depende de ninguna otra capa.
-  - `service` depende únicamente de `domain`.
-  - `infraestructure` depende de `service` y `domain` para exponer la API y conectar la persistencia.
-- **Verificación automatizada**: ArchUnit valida en el build que `domain` no importe paquetes de `service` o `infraestructure`.
+- **Dominio**: No depende de ninguna capa.
+- **Servicio**: Depende solo del dominio.
+- **Infraestructura**: Depende del servicio y del dominio para implementar los adaptadores.
+
+Esta regla es verificada automáticamente por **ArchUnit** en cada build.
+
+## Integración entre Módulos
+
+La comunicación entre el Módulo 3 y los demás módulos del sistema AviControl se realiza por dos mecanismos:
+
+| Mecanismo | Dirección | Uso |
+| --- | --- | --- |
+| **REST HTTP** (`RestClient`) | M3 → M1, M3 → M2 | Sincronización periódica de datos locales (galpones, lotes, sacrificios, alimentos, medicamentos) |
+| **Kafka** (`spring-kafka`) | M2 → M3, M3 → M2 | Publicación y consumo de eventos asíncronos (ej. `ResultadoSacrificioPublicadoEvent`, `LiquidacionGeneradaEvent`) |
+
+> La arquitectura de integración (REST vs. Kafka por canal) puede evolucionar a medida que se acuerden los contratos con los equipos de Módulo 1 y Módulo 2. Los puertos del dominio están diseñados para ser independientes del mecanismo de transporte.
