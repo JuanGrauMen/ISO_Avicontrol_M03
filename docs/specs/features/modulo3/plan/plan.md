@@ -560,7 +560,7 @@ src/test/java/co/edu/unimagdalena/avicontrol/
 
 **Goal**: Anulación auditable de una Liquidación ACTIVA. Conservación íntegra. Rehabilitación del lote.
 
-**Independent Test**: POST anulación → verificar estado ANULADA, registro auditoría, lote rehabilitado.
+**Independent Test**: PUT /api/v1/liquidaciones/{id}/anulacion → verificar estado ANULADA, registro auditoría, lote rehabilitado.
 
 ### Tests para CU04
 
