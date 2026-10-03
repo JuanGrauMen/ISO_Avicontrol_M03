@@ -1,6 +1,7 @@
 # Implementation Plan: Gestión del Ciclo de Vida de Liquidaciones
 
 **Date**: 2026-09-28  
+**Actualizado**: 2026-10-02  
 **Specs**:
 - [m3-cu03-generar-liquidacion](../m3-cu03-generar-liquidacion/spec.md) – Generar Liquidación del Lote  
 - [m3-cu04-anular-liquidacion](../m3-cu04-anular-liquidacion/spec.md) – Anular Liquidación  
@@ -19,22 +20,115 @@ Este plan cubre el núcleo de dominio del Módulo 3: la **generación inmutable 
 - **Project Type**: Core Domain & Service (motor de cálculo financiero y auditoría)
 - **Performance Goals**: Generación de liquidación < 5s (SC-002)
 - **Constraints**: Regla `HALF_UP` en enteros COP (RT-01); 2 decimales en porcentajes (RT-02); inmutabilidad absoluta de la liquidación activa; bloqueo de segunda liquidación activa por lote.
-- **Scale/Scope**: Una liquidación por lote cerrado por ciclo.
 
-## Project Structure
+---
 
-```text
-src/main/java/co/edu/unimagdalena/avicontrol/
-├── domain/
-│   ├── model/                          # Liquidacion, PartidaCostoLote, SnapshotDatosOrigen, RegistroAnulacion
-│   ├── port/in/                        # GenerarLiquidacionUseCase.java, AnularLiquidacionUseCase.java
-│   └── shared/                         # Rounding.java (copTotal, percentage)
-├── application/
-│   ├── service/                        # GenerarLiquidacionService.java, AnularLiquidacionService.java
-│   └── dto/                            # LiquidacionDto.java, AnulacionDto.java
-└── infrastructure/
-    └── adapter/rest/                   # LiquidacionController.java (POST y PUT /api/v1/liquidaciones)
+## Especificación de Endpoints REST y Payloads JSON
+
+### A. Endpoint: `POST /api/v1/liquidaciones` (Generar Liquidación)
+
+#### Request Body (Caso Dorado)
+```json
+{
+  "idGalpon": "123e4567-e89b-12d3-a456-426614174000",
+  "idLote": "98765432-e89b-12d3-a456-426614174000",
+  "precioKgCop": 4500.00
+}
 ```
+
+#### Response Body (`201 Created` - Caso Dorado)
+```json
+{
+  "idLiquidacion": 1045,
+  "idLote": "98765432-e89b-12d3-a456-426614174000",
+  "idGalpon": "123e4567-e89b-12d3-a456-426614174000",
+  "idResultadoSacrificio": "456e7890-e89b-12d3-a456-426614174000",
+  "pollosVendidos": 8500,
+  "pesoTotalKg": 23800.00,
+  "pesoPromedioKg": 2.8000,
+  "precioKgCop": 4500.00,
+  "ventaBrutaCop": 107100000,
+  "mortalidadAves": 500,
+  "porcentajeMortalidad": 5.56,
+  "costosOperativosCop": 85000000,
+  "utilidadNetaCop": 22100000,
+  "estado": "ACTIVA",
+  "fechaHoraGeneracion": "2026-10-02T15:30:00Z",
+  "usuarioResponsable": "financiero@avicontrol.edu.co"
+}
+```
+
+#### Response Body (`201 Created` - Siniestro Total / 100% Mortalidad)
+```json
+{
+  "idLiquidacion": 1046,
+  "idLote": "77765432-e89b-12d3-a456-426614174000",
+  "idGalpon": "323e4567-e89b-12d3-a456-426614174000",
+  "idResultadoSacrificio": null,
+  "pollosVendidos": 0,
+  "pesoTotalKg": 0.00,
+  "pesoPromedioKg": 0.0000,
+  "precioKgCop": 0.00,
+  "ventaBrutaCop": 0,
+  "mortalidadAves": 9000,
+  "porcentajeMortalidad": 100.00,
+  "costosOperativosCop": 40000000,
+  "utilidadNetaCop": -40000000,
+  "estado": "ACTIVA",
+  "fechaHoraGeneracion": "2026-10-02T15:45:00Z",
+  "usuarioResponsable": "financiero@avicontrol.edu.co"
+}
+```
+
+#### Response Error (`409 Conflict` - Intento de Segunda Liquidación Activa)
+```json
+{
+  "type": "https://avicontrol.edu.co/errors/liquidacion-duplicada",
+  "title": "Conflicto de Liquidación",
+  "status": 409,
+  "detail": "El lote 98765432-e89b-12d3-a456-426614174000 ya cuenta con una liquidación activa (ID: 1045).",
+  "instance": "/api/v1/liquidaciones",
+  "timestamp": "2026-10-02T16:00:00Z"
+}
+```
+
+---
+
+### B. Endpoint: `PUT /api/v1/liquidaciones/{id}/anulacion` (Anular Liquidación)
+
+#### Request Body
+```json
+{
+  "motivo": "Precio por kilogramo mal ingresado ($450 COP en vez de $4500 COP). Se requiere reliquidación."
+}
+```
+
+#### Response Body (`200 OK`)
+```json
+{
+  "idAnulacion": 201,
+  "idLiquidacion": 1045,
+  "idLote": "98765432-e89b-12d3-a456-426614174000",
+  "motivo": "Precio por kilogramo mal ingresado ($450 COP en vez de $4500 COP). Se requiere reliquidación.",
+  "fechaHoraAnulacion": "2026-10-02T16:15:00Z",
+  "usuarioResponsable": "financiero@avicontrol.edu.co",
+  "estadoLiquidacion": "ANULADA"
+}
+```
+
+#### Response Error (`400 Bad Request` - Motivo Corto)
+```json
+{
+  "type": "https://avicontrol.edu.co/errors/validacion-incorrecta",
+  "title": "Error de Validación",
+  "status": 400,
+  "detail": "El motivo de anulación debe tener al menos 10 caracteres.",
+  "instance": "/api/v1/liquidaciones/1045/anulacion",
+  "timestamp": "2026-10-02T16:16:00Z"
+}
+```
+
+---
 
 ## Phase 1: Foundational – Esquema SQL de Liquidación y Dominio
 

@@ -1,6 +1,7 @@
 # Implementation Plan: Historial de Liquidaciones y Exportación de Desglose
 
 **Date**: 2026-09-28  
+**Actualizado**: 2026-10-02  
 **Specs**:
 - [m3-cu05-desglose-ventas-gastos](../m3-cu05-desglose-ventas-gastos/spec.md) – Consultar Desglose de Ventas y Gastos  
 - [m3-cu06-historial-liquidaciones](../m3-cu06-historial-liquidaciones/spec.md) – Consultar Historial de Liquidaciones  
@@ -19,20 +20,124 @@ Este plan aborda la **consulta histórica cronológica** de liquidaciones (`CU06
 - **Project Type**: Backend Service & Report Generator
 - **Performance Goals**: Generación y descarga de archivo Excel < 10s (SC-002); consulta de historial < 3s (SC-001)
 - **Constraints**: Formato monetario COP sin decimales en Excel; fórmulas de suma automáticas; lectura de liquidaciones anuladas preservando el estado original.
-- **Scale/Scope**: Decenas de liquidaciones históricas por año.
 
-## Project Structure
+---
 
-```text
-src/main/java/co/edu/unimagdalena/avicontrol/
-├── domain/
-│   └── port/in/                        # ConsultarHistorialUseCase.java, ConsultarDesgloseUseCase.java, ExportarExcelUseCase.java
-├── application/
-│   ├── service/                        # ConsultarHistorialService.java, ConsultarDesgloseService.java, ExportarExcelService.java
-│   └── dto/                            # DesgloseDto.java, HistorialFiltroDto.java
-└── infrastructure/
-    └── adapter/rest/                   # HistorialController.java, DesgloseController.java
+## Especificación de Endpoints REST y Payloads JSON
+
+### A. Endpoint: `GET /api/v1/liquidaciones/{id}/desglose` (Desglose Pormenorizado)
+
+#### Ejemplo de Response Body (`200 OK`)
+```json
+{
+  "idLiquidacion": 1045,
+  "idLote": "98765432-e89b-12d3-a456-426614174000",
+  "nombreLote": "Lote L-2026-A",
+  "estadoLiquidacion": "ACTIVA",
+  "resumenMatrizVenta": {
+    "pollosVendidos": 8500,
+    "pesoTotalKg": 23800.00,
+    "precioKgCop": 4500.00,
+    "ventaBrutaCop": 107100000,
+    "costosOperativosCop": 85000000,
+    "utilidadNetaCop": 22100000
+  },
+  "partidasCategorizadas": [
+    {
+      "categoria": "POBLACION",
+      "subtotalCategoriaCop": 18000000,
+      "items": [
+        {
+          "concepto": "Costo Inicial Lote Pollitos BB (9000 aves)",
+          "cantidad": 9000.000,
+          "unidadMedida": "AVES",
+          "precioUnitarioCop": 2000.00,
+          "subtotalCop": 18000000,
+          "fuenteOrigen": "MODULO_1"
+        }
+      ]
+    },
+    {
+      "categoria": "ALIMENTO",
+      "subtotalCategoriaCop": 55000000,
+      "items": [
+        {
+          "concepto": "Alimento Iniciador Fase 1",
+          "cantidad": 12000.000,
+          "unidadMedida": "KG",
+          "precioUnitarioCop": 2500.00,
+          "subtotalCop": 30000000,
+          "fuenteOrigen": "MODULO_2"
+        },
+        {
+          "concepto": "Alimento Engorde Fase 2",
+          "cantidad": 10000.000,
+          "unidadMedida": "KG",
+          "precioUnitarioCop": 2500.00,
+          "subtotalCop": 25000000,
+          "fuenteOrigen": "MODULO_2"
+        }
+      ]
+    },
+    {
+      "categoria": "MEDICINA",
+      "subtotalCategoriaCop": 12000000,
+      "items": [
+        {
+          "concepto": "Vacuna Gumboro + Newcastle",
+          "cantidad": 9000.000,
+          "unidadMedida": "DOSIS",
+          "precioUnitarioCop": 1333.33,
+          "subtotalCop": 12000000,
+          "fuenteOrigen": "MODULO_2"
+        }
+      ]
+    }
+  ],
+  "totalCostosCalculadoCop": 85000000
+}
 ```
+
+---
+
+### B. Endpoint: `GET /api/v1/liquidaciones/{id}/desglose/excel` (Descarga Excel)
+
+#### Cabeceras HTTP de Respuesta
+- **`Content-Type`**: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- **`Content-Disposition`**: `attachment; filename="Liquidacion_Lote_L-2026-A.xlsx"`
+
+---
+
+### C. Endpoint: `GET /api/v1/liquidaciones` (Historial Cronológico)
+
+#### Query Params
+- **`galpon`** (`UUID`, Opcional): Filtrar por galpón.
+- **`desde`** (`DATE`, Opcional): Fecha inicio (`YYYY-MM-DD`).
+- **`hasta`** (`DATE`, Opcional): Fecha fin (`YYYY-MM-DD`).
+
+#### Ejemplo de Response Body (`200 OK`)
+```json
+{
+  "content": [
+    {
+      "idLiquidacion": 1045,
+      "idLote": "98765432-e89b-12d3-a456-426614174000",
+      "nombreLote": "Lote L-2026-A",
+      "idGalpon": "123e4567-e89b-12d3-a456-426614174000",
+      "nombreGalpon": "Galpón 1",
+      "ventaBrutaCop": 107100000,
+      "costosOperativosCop": 85000000,
+      "utilidadNetaCop": 22100000,
+      "estado": "ACTIVA",
+      "fechaHoraGeneracion": "2026-10-02T15:30:00Z",
+      "usuarioResponsable": "financiero@avicontrol.edu.co"
+    }
+  ],
+  "totalElements": 1
+}
+```
+
+---
 
 ## Phase 1: CU06 – Historial Cronológico de Liquidaciones
 

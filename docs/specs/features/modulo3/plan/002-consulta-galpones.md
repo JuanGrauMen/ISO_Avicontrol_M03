@@ -1,6 +1,7 @@
 # Implementation Plan: Consultar Lista de Galpones
 
 **Date**: 2026-09-28  
+**Actualizado**: 2026-10-02  
 **Specs**:
 - [m3-cu01-lista-galpones](../m3-cu01-lista-galpones/spec.md) – Consultar Lista de Galpones  
 
@@ -18,20 +19,67 @@ Permite al Administrador Financiero consultar la lista de galpones y lotes aloja
 - **Project Type**: Backend REST API (caso de uso de consulta)
 - **Performance Goals**: Tiempo de respuesta HTTP GET < 3s (SC-001)
 - **Constraints**: No consulta en vivo a Módulo 1; datos extraídos estrictamente de la copia local sincronizada. Paginación fija a máximo 6 ítems por página.
-- **Scale/Scope**: Decenas de galpones por granja.
 
-## Project Structure
+---
 
-```text
-src/main/java/co/edu/unimagdalena/avicontrol/
-├── domain/
-│   └── port/in/                        # ListarGalponesUseCase.java
-├── application/
-│   ├── service/                        # ListarGalponesService.java
-│   └── dto/                            # GalponResumenDto.java, GalponPageDto.java
-└── infrastructure/
-    └── adapter/rest/                   # GalponController.java (GET /api/v1/galpones)
+## Especificación del Endpoint REST y Payloads JSON
+
+### Endpoint: `GET /api/v1/galpones`
+
+#### Parámetros de Consulta (Query Params)
+- **`estado`** (`String`, Opcional): Filtrar por catálogo (`VACIADO_SANITARIO`, `PRODUCTIVO`, `DISPONIBLE`, etc. o vacíos para todos).
+- **`search`** (`String`, Opcional): Término de búsqueda por nombre de galpón, nombre de lote o UUID.
+- **`page`** (`int`, Opcional, Default: `0`): Número de página (0-indexed).
+- **`size`** (`int`, Opcional, Default: `6`): Tamaño fijo de página (máximo 6 galpones por página).
+
+#### Ejemplo de Respuesta Exitosa (`200 OK`)
+```json
+{
+  "content": [
+    {
+      "idGalpon": "123e4567-e89b-12d3-a456-426614174000",
+      "nombreGalpon": "Galpón 1",
+      "estado": "VACIADO_SANITARIO",
+      "idLote": "98765432-e89b-12d3-a456-426614174000",
+      "nombreLote": "Lote L-2026-A",
+      "fechaIngreso": "2026-08-01",
+      "porcentajeMortalidad": 5.56,
+      "fechaHoraSync": "2026-10-02T14:00:00Z",
+      "accionesDisponibles": ["LIQUIDAR", "VER_HISTORIAL"]
+    },
+    {
+      "idGalpon": "223e4567-e89b-12d3-a456-426614174001",
+      "nombreGalpon": "Galpón 2",
+      "estado": "PRODUCTIVO",
+      "idLote": "88765432-e89b-12d3-a456-426614174001",
+      "nombreLote": "Lote L-2026-B",
+      "fechaIngreso": "2026-08-15",
+      "porcentajeMortalidad": 2.10,
+      "fechaHoraSync": "2026-10-02T14:00:00Z",
+      "accionesDisponibles": ["VER_HISTORIAL"]
+    }
+  ],
+  "page": 0,
+  "size": 6,
+  "totalElements": 7,
+  "totalPages": 2,
+  "mensaje": null
+}
 ```
+
+#### Ejemplo de Respuesta Sin Coincidencias (`200 OK`)
+```json
+{
+  "content": [],
+  "page": 0,
+  "size": 6,
+  "totalElements": 0,
+  "totalPages": 0,
+  "mensaje": "No se encontraron resultados"
+}
+```
+
+---
 
 ## Phase 1: Puertos y DTOs
 
