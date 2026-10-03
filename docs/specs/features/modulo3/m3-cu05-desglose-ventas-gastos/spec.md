@@ -20,7 +20,7 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 **Acceptance Scenarios**:
 
 1. **Scenario**: Visualización del desglose completo por categorías
-   - **Given** un lote con Liquidación en estado `ACTIVA` que incluye partidas de alimento (Pre-inicio, Inicio, Engorde/Broiler), partidas de insumos médicos y costo inicial de adquisición de aves
+   - **Given** un lote con Liquidación en estado `ACTIVA` que incluye partidas de alimento (Pre-inicio, Inicio, Engorde), partidas de insumos médicos y costo inicial de adquisición de aves
    - **When** el administrador financiero accede a la vista de desglose
    - **Then** el sistema presenta una tabla estructurada por categorías donde cada fila detalla: Concepto, Cantidad, Unidad de medida, Precio unitario aplicado (COP) y Subtotal valorizado (COP)
    - **And** la suma de los subtotales de egreso coincide con exactitud al peso con el valor de Costos Operativos de la Liquidación
