@@ -1,7 +1,7 @@
 # Implementation Plan: Historial de Liquidaciones y Exportación de Desglose
 
 **Date**: 2026-09-28  
-**Actualizado**: 2026-10-02  
+**Actualizado**: 2026-10-03  
 **Specs**:
 - [m3-cu05-desglose-ventas-gastos](../m3-cu05-desglose-ventas-gastos/spec.md) – Consultar Desglose de Ventas y Gastos  
 - [m3-cu06-historial-liquidaciones](../m3-cu06-historial-liquidaciones/spec.md) – Consultar Historial de Liquidaciones  
@@ -16,124 +16,97 @@ Este plan aborda la **consulta histórica cronológica** de liquidaciones (`CU06
 - **Primary Dependencies**: Spring Boot 3.3.x, Spring Data JPA, Spring Web MVC, Apache POI `poi-ooxml:5.2.5`, JUnit 5, MockMvc
 - **Storage**: Proyección y lectura sobre tablas `liquidacion`, `partida_costo_lote`, `registro_anulacion`
 - **Testing**: Unit tests de lógica de proyección/agrupación, tests de generación de Excel con Apache POI y tests REST
-- **Target Platform**: JVM 21 / REST API / Archivo binario `.xlsx`
-- **Project Type**: Backend Service & Report Generator
 - **Performance Goals**: Generación y descarga de archivo Excel < 10s (SC-002); consulta de historial < 3s (SC-001)
-- **Constraints**: Formato monetario COP sin decimales en Excel; fórmulas de suma automáticas; lectura de liquidaciones anuladas preservando el estado original.
 
 ---
 
-## Especificación de Endpoints REST y Payloads JSON
+## Snippets de Código Java de Puertos, Servicio Apache POI y Controlador
 
-### A. Endpoint: `GET /api/v1/liquidaciones/{id}/desglose` (Desglose Pormenorizado)
+### Puerto de Entrada: `ExportarExcelUseCase.java`
+```java
+package co.edu.unimagdalena.avicontrol.domain.port.in;
 
-#### Ejemplo de Response Body (`200 OK`)
-```json
-{
-  "idLiquidacion": 1045,
-  "idLote": "98765432-e89b-12d3-a456-426614174000",
-  "nombreLote": "Lote L-2026-A",
-  "estadoLiquidacion": "ACTIVA",
-  "resumenMatrizVenta": {
-    "pollosVendidos": 8500,
-    "pesoTotalKg": 23800.00,
-    "precioKgCop": 4500.00,
-    "ventaBrutaCop": 107100000,
-    "costosOperativosCop": 85000000,
-    "utilidadNetaCop": 22100000
-  },
-  "partidasCategorizadas": [
-    {
-      "categoria": "POBLACION",
-      "subtotalCategoriaCop": 18000000,
-      "items": [
-        {
-          "concepto": "Costo Inicial Lote Pollitos BB (9000 aves)",
-          "cantidad": 9000.000,
-          "unidadMedida": "AVES",
-          "precioUnitarioCop": 2000.00,
-          "subtotalCop": 18000000,
-          "fuenteOrigen": "MODULO_1"
-        }
-      ]
-    },
-    {
-      "categoria": "ALIMENTO",
-      "subtotalCategoriaCop": 55000000,
-      "items": [
-        {
-          "concepto": "Alimento Iniciador Fase 1",
-          "cantidad": 12000.000,
-          "unidadMedida": "KG",
-          "precioUnitarioCop": 2500.00,
-          "subtotalCop": 30000000,
-          "fuenteOrigen": "MODULO_2"
-        },
-        {
-          "concepto": "Alimento Engorde Fase 2",
-          "cantidad": 10000.000,
-          "unidadMedida": "KG",
-          "precioUnitarioCop": 2500.00,
-          "subtotalCop": 25000000,
-          "fuenteOrigen": "MODULO_2"
-        }
-      ]
-    },
-    {
-      "categoria": "MEDICINA",
-      "subtotalCategoriaCop": 12000000,
-      "items": [
-        {
-          "concepto": "Vacuna Gumboro + Newcastle",
-          "cantidad": 9000.000,
-          "unidadMedida": "DOSIS",
-          "precioUnitarioCop": 1333.33,
-          "subtotalCop": 12000000,
-          "fuenteOrigen": "MODULO_2"
-        }
-      ]
-    }
-  ],
-  "totalCostosCalculadoCop": 85000000
+public interface ExportarExcelUseCase {
+    byte[] generarReporteExcelLiquidacion(Long idLiquidacion);
 }
 ```
 
----
+### Servicio Apache POI: `ExportarExcelService.java`
+```java
+package co.edu.unimagdalena.avicontrol.application.service;
 
-### B. Endpoint: `GET /api/v1/liquidaciones/{id}/desglose/excel` (Descarga Excel)
+import co.edu.unimagdalena.avicontrol.domain.port.in.ExportarExcelUseCase;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Service;
 
-#### Cabeceras HTTP de Respuesta
-- **`Content-Type`**: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
-- **`Content-Disposition`**: `attachment; filename="Liquidacion_Lote_L-2026-A.xlsx"`
+import java.io.ByteArrayOutputStream;
 
----
+@Service
+public class ExportarExcelService implements ExportarExcelUseCase {
 
-### C. Endpoint: `GET /api/v1/liquidaciones` (Historial Cronológico)
+    @Override
+    public byte[] generarReporteExcelLiquidacion(Long idLiquidacion) {
+        try (Workbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
-#### Query Params
-- **`galpon`** (`UUID`, Opcional): Filtrar por galpón.
-- **`desde`** (`DATE`, Opcional): Fecha inicio (`YYYY-MM-DD`).
-- **`hasta`** (`DATE`, Opcional): Fecha fin (`YYYY-MM-DD`).
+            Sheet sheet = workbook.createSheet("Liquidacion_Lote");
 
-#### Ejemplo de Response Body (`200 OK`)
-```json
-{
-  "content": [
-    {
-      "idLiquidacion": 1045,
-      "idLote": "98765432-e89b-12d3-a456-426614174000",
-      "nombreLote": "Lote L-2026-A",
-      "idGalpon": "123e4567-e89b-12d3-a456-426614174000",
-      "nombreGalpon": "Galpón 1",
-      "ventaBrutaCop": 107100000,
-      "costosOperativosCop": 85000000,
-      "utilidadNetaCop": 22100000,
-      "estado": "ACTIVA",
-      "fechaHoraGeneracion": "2026-10-02T15:30:00Z",
-      "usuarioResponsable": "financiero@avicontrol.edu.co"
+            // Estilo de celda para moneda COP ($#,##0)
+            CellStyle copStyle = workbook.createCellStyle();
+            DataFormat format = workbook.createDataFormat();
+            copStyle.setDataFormat(format.getFormat("$#,##0"));
+
+            // Encabezados y Matriz de Venta
+            Row headerRow = sheet.createRow(0);
+            headerRow.createCell(0).setCellValue("Concepto");
+            headerRow.createCell(1).setCellValue("Subtotal (COP)");
+
+            // Partidas y fórmula de suma nativa Excel
+            Row totalRow = sheet.createRow(10);
+            totalRow.createCell(0).setCellValue("TOTAL COSTOS OPERATIVOS");
+            Cell totalCell = totalRow.createCell(1);
+            totalCell.setCellFormula("SUM(B2:B9)");
+            totalCell.setCellStyle(copStyle);
+
+            workbook.write(out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Error al generar reporte Excel POI", e);
+        }
     }
-  ],
-  "totalElements": 1
+}
+```
+
+### Adaptador REST con Cabeceras `.xlsx`: `DesgloseController.java`
+```java
+package co.edu.unimagdalena.avicontrol.infrastructure.adapter.rest;
+
+import co.edu.unimagdalena.avicontrol.domain.port.in.ExportarExcelUseCase;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/liquidaciones")
+public class DesgloseController {
+
+    private final ExportarExcelUseCase exportarExcelUseCase;
+
+    public DesgloseController(ExportarExcelUseCase exportarExcelUseCase) {
+        this.exportarExcelUseCase = exportarExcelUseCase;
+    }
+
+    @GetMapping("/{id}/desglose/excel")
+    public ResponseEntity<byte[]> descargarExcelDesglose(@PathVariable Long id) {
+        byte[] bytes = exportarExcelUseCase.generarReporteExcelLiquidacion(id);
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Liquidacion_Lote_" + id + ".xlsx\"")
+            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+            .body(bytes);
+    }
 }
 ```
 
@@ -141,10 +114,8 @@ Este plan aborda la **consulta histórica cronológica** de liquidaciones (`CU06
 
 ## Phase 1: CU06 – Historial Cronológico de Liquidaciones
 
-**Purpose**: Consulta filtrada y ordenada del historial de liquidaciones activas y anuladas.
-
 - [ ] **T001** Crear puerto `ConsultarHistorialUseCase.java` y DTO `HistorialFiltroDto.java`.
-- [ ] **T002** Unit Test `ConsultarHistorialServiceTest.java`: verificación de orden descendente por fecha de generación, filtro combinado por galpón y fechas, validación de rango de fechas no invertido y respuesta ante vacío.
+- [ ] **T002** Unit Test `ConsultarHistorialServiceTest.java`.
 - [ ] **T003** Implementar `ConsultarHistorialService.java`.
 - [ ] **T004** Integration Test e implementación de `GET /api/v1/liquidaciones` en `HistorialController.java`.
 
@@ -152,10 +123,8 @@ Este plan aborda la **consulta histórica cronológica** de liquidaciones (`CU06
 
 ## Phase 2: CU05 – Consultar Desglose de Ventas y Gastos
 
-**Purpose**: Proyección detallada de partidas de costo agrupadas por categoría.
-
 - [ ] **T005** Crear puerto `ConsultarDesgloseUseCase.java` y DTO `DesgloseDto.java`.
-- [ ] **T006** Unit Test `ConsultarDesgloseServiceTest.java`: verificar que la suma de subtotales agrupados por categoría cuadra al peso con el indicador Costos Operativos de la liquidación y soporte para liquidaciones anuladas.
+- [ ] **T006** Unit Test `ConsultarDesgloseServiceTest.java`.
 - [ ] **T007** Implementar `ConsultarDesgloseService.java`.
 - [ ] **T008** Integration Test e implementación de `GET /api/v1/liquidaciones/{id}/desglose` en `DesgloseController.java`.
 
@@ -163,8 +132,6 @@ Este plan aborda la **consulta histórica cronológica** de liquidaciones (`CU06
 
 ## Phase 3: CU05 – Generación y Exportación de Reporte Excel (Apache POI)
 
-**Purpose**: Generar el documento Excel `.xlsx` con la Matriz de Venta Final y el desglose de costos.
-
-- [ ] **T009** Unit Test `ExportarExcelServiceTest.java`: verificar construcción del libro de trabajo Excel, estilos de celda monetarios COP, encabezados y fórmulas de suma de Apache POI.
-- [ ] **T010** Implementar `ExportarExcelService.java` en `application/service/`.
-- [ ] **T011** Integration Test e implementación de `GET /api/v1/liquidaciones/{id}/desglose/excel` con `Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` en `DesgloseController.java`.
+- [ ] **T009** Unit Test `ExportarExcelServiceTest.java`.
+- [ ] **T010** Implementar `ExportarExcelService.java`.
+- [ ] **T011** Integration Test e implementación de `GET /api/v1/liquidaciones/{id}/desglose/excel`.

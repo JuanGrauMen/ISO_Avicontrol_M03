@@ -1,140 +1,178 @@
-# Diccionario de Datos — Módulo 3: Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)
+# Diccionario de Dominio y Datos — Módulo 3: Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)
 
-**Versión**: 1.0  
-**Fecha**: 02/10/2026  
+**Versión**: 1.1  
+**Fecha**: 03/10/2026  
 **Módulo**: 3 – Liquidación de Lote y Análisis de Rentabilidad  
+**Naturaleza**: Glosario Conceptual y Diccionario de Dominio / Base de Datos  
+
+---
+
+## Propósito
+
+Este documento cumple la función dual de **Glosario Conceptual de Dominio (Domain-Driven Design)** y **Diccionario de Base de Datos Técnico**. Define los términos ubicuos del negocio utilizados en el Módulo 3 y los especifica con sus correspondientes atributos relacionales, tipos de datos SQL, llaves y restricciones de integridad.
 
 ---
 
 ## 1. Entidades Principales del Dominio
 
-### A. Liquidación (`Liquidacion`)
+### A. Tabla `liquidacion` (Entidad `Liquidacion`)
 Entidad central e inmutable del módulo que consolida los resultados económicos del cierre de un lote avícola.
-- **`idLiquidacion`** (`BIGINT`, PK, Auto-incremental): Identificador único interno del registro de liquidación.
-- **`idLote`** (`UUID`, NOT NULL): Identificador del lote de aves liquidado (proveniente de M1). Restricción de unicidad para liquidaciones activas (`uq_lote_activa`).
-- **`idGalpon`** (`UUID`, NOT NULL): Identificador del galpón que albergó el lote (proveniente de M1).
-- **`idResultadoSacrificio`** (`UUID`, NULLABLE): Referencia al resultado final de sacrificio emitido por M2. Nulo únicamente en caso de siniestro total (100% mortalidad).
-- **`pollosVendidos`** (`INT`, NULLABLE): Cantidad total de aves comercializadas (de M2).
-- **`pesoTotalKg`** (`NUMERIC(12,2)`, NULLABLE): Peso acumulado total comercializado en kilogramos (de M2). Base de cálculo de la Venta Bruta.
-- **`pesoPromedioKg`** (`NUMERIC(8,4)`, NULLABLE): Peso promedio por ave (`pesoTotalKg / pollosVendidos`). Atributo puramente informativo para presentación.
-- **`precioKgCop`** (`NUMERIC(14,2)`, NULLABLE): Precio de venta por kilogramo ingresado por el Administrador Financiero.
-- **`ventaBrutaCop`** (`BIGINT`, NOT NULL): Ingreso total generado (`pesoTotalKg × precioKgCop`). Redondeado con `HALF_UP` a enteros COP.
-- **`mortalidadAves`** (`INT`, NOT NULL): Cantidad de aves muertas en el ciclo (`poblacionInicial - poblacionActual` de M1).
-- **`porcentajeMortalidad`** (`NUMERIC(5,2)`, NOT NULL): Porcentaje acumulado de mortalidad `((mortalidadAves / poblacionInicial) × 100)`. Expresado con 2 decimales.
-- **`costosOperativosCop`** (`BIGINT`, NOT NULL): Suma total de los costos directos del ciclo (alimento, medicina y costo inicial de poblacion).
-- **`utilidadNetaCop`** (`BIGINT`, NOT NULL): Ganancia o pérdida neta del lote (`ventaBrutaCop - costosOperativosCop`).
-- **`estado`** (`VARCHAR(10)`, NOT NULL): Estado del documento financiero (`ACTIVA` o `ANULADA`).
-- **`fechaHoraGeneracion`** (`TIMESTAMP`, NOT NULL): Fecha y hora exacta de creación del registro.
-- **`usuarioResponsable`** (`VARCHAR(100)`, NOT NULL): Identificador o correo del usuario que procesó la liquidación.
 
-### B. Galpón (`Galpon`) — Copia Local M1
-Registro local que refleja la infraestructura física y su estado operativo sincronizado desde Módulo 1.
-- **`idGalpon`** (`UUID`, PK): Identificador único del galpón en el sistema global.
-- **`nombre`** (`VARCHAR(100)`, NOT NULL): Nombre o código identificador del galpón (ej. "Galpón 1").
-- **`aforoMaximo`** (`INT`, NOT NULL): Capacidad máxima poblacional autorizada.
-- **`estado`** (`VARCHAR(30)`, NOT NULL): Estado operativo sincronizado de M1 (`EstadoGalpon`).
-- **`fechaHoraSync`** (`TIMESTAMP`, NOT NULL): Estampa de tiempo de la última sincronización con M1.
+| Campo | Tipo SQL | Nulo | Llave | Descripción y Regla de Negocio |
+| :--- | :--- | :--- | :--- | :--- |
+| `id_liquidacion` | `BIGSERIAL` | NO | PK | Identificador único interno autoincremental de la liquidación. |
+| `id_lote` | `UUID` | NO | UQ | UUID del lote (M1). Restricción `UNIQUE` para liquidaciones `ACTIVA`. |
+| `id_galpon` | `UUID` | NO | FK | UUID del galpón que albergó el lote (M1). |
+| `id_resultado_sacrificio` | `UUID` | SI | FK | UUID del resultado de sacrificio (M2). Nulo en siniestro total. |
+| `pollos_vendidos` | `INT` | SI | - | Cantidad total de aves comercializadas (de M2). Nulo si no se vendió. |
+| `peso_total_kg` | `NUMERIC(12,2)` | SI | - | Peso acumulado total en kg (M2). Base de cálculo de Venta Bruta. |
+| `peso_promedio_kg` | `NUMERIC(8,4)` | SI | - | Atributo derivado `peso_total_kg / pollos_vendidos`. Informativo. |
+| `precio_kg_cop` | `NUMERIC(14,2)` | SI | - | Precio digitado en COP/kg por el Administrador Financiero. |
+| `venta_bruta_cop` | `BIGINT` | NO | - | `peso_total_kg × precio_kg_cop` con redondeo `HALF_UP` a enteros COP. |
+| `mortalidad_aves` | `INT` | NO | - | `poblacion_inicial - poblacion_actual` (de M1). |
+| `porcentaje_mortalidad` | `NUMERIC(5,2)` | NO | - | `((mortalidad_aves / poblacion_inicial) × 100)` con 2 decimales. |
+| `costos_operativos_cop` | `BIGINT` | NO | - | Suma de partidas directas (alimento + medicina + costo inicial lote). |
+| `utilidad_neta_cop` | `BIGINT` | NO | - | Ganancia o pérdida neta `venta_bruta_cop - costos_operativos_cop`. |
+| `estado` | `VARCHAR(10)` | NO | - | Estado del documento financiero (`ACTIVA` o `ANULADA`). |
+| `fecha_hora_generacion` | `TIMESTAMP` | NO | - | Fecha y hora exacta de creación del registro. |
+| `usuario_responsable` | `VARCHAR(100)` | NO | - | Identificador o correo del usuario financiero que procesó. |
 
-### C. Lote (`Lote`) — Copia Local M1
-Registro local de la parvada alojada en un galpón, sincronizado desde Módulo 1.
-- **`idLote`** (`UUID`, PK): Identificador único del lote en el sistema global.
-- **`idGalpon`** (`UUID`, NOT NULL, FK): Referencia al galpón al que está asignado.
-- **`nombre`** (`VARCHAR(100)`, NOT NULL): Nombre o código del lote (ej. "Lote L-2026-A").
-- **`fechaIngreso`** (`DATE`, NOT NULL): Fecha de encasetamiento o inicio del ciclo.
-- **`poblacionInicial`** (`INT`, NOT NULL): Cantidad de aves con las que inició el ciclo.
-- **`poblacionActual`** (`INT`, NOT NULL): Cantidad de aves vivas reportadas en la última lectura de M1.
-- **`costoTotalCop`** (`BIGINT`, NOT NULL): Costo inicial acumulado de adquisición del lote de pollitos.
-- **`fechaHoraSync`** (`TIMESTAMP`, NOT NULL): Estampa de tiempo de la última sincronización con M1.
+---
 
-### D. Partida de Costo del Lote (`PartidaCostoLote`)
-Detalle congelado de las partidas de costo directo asignadas a una liquidación.
-- **`idPartida`** (`BIGSERIAL`, PK): Identificador interno autogenerado.
-- **`idLiquidacion`** (`BIGINT`, NOT NULL, FK): Referencia a la liquidación correspondiente.
-- **`idLote`** (`UUID`, NOT NULL): Referencia al lote de origen.
-- **`categoria`** (`VARCHAR(20)`, NOT NULL): Clasificación del costo (`ALIMENTO`, `MEDICINA`, `POBLACION`).
-- **`concepto`** (`VARCHAR(200)`, NOT NULL): Descripción detallada del ítem (ej. "Alimento Engorde Fase 2").
-- **`cantidad`** (`NUMERIC(12,3)`, NOT NULL): Cantidad consumida expresada en la unidad de medida.
-- **`unidadMedida`** (`VARCHAR(30)`, NOT NULL): Unidad de empaque o medida (ej. "KG", "DOSIS", "AVES").
-- **`precioUnitarioCop`** (`NUMERIC(14,2)`, NOT NULL): Precio unitario COP aplicado a la partida.
-- **`subtotalCop`** (`BIGINT`, NOT NULL): Subtotal monetario (`cantidad × precioUnitarioCop`) redondeado a entero COP.
-- **`fuenteOrigen`** (`VARCHAR(20)`, NOT NULL): Módulo emisor original (`MODULO_1`, `MODULO_2`).
-- **`referenciaOrigen`** (`VARCHAR(200)`, NULLABLE): UUID o código de transacción del registro origen.
+### B. Tabla `galpon` (Entidad `Galpon` — Copia Local M1)
+Reflejo local sincronizado de la infraestructura física desde Módulo 1.
+
+| Campo | Tipo SQL | Nulo | Llave | Descripción y Regla de Negocio |
+| :--- | :--- | :--- | :--- | :--- |
+| `id_galpon` | `UUID` | NO | PK | Identificador global único del galpón (M1). |
+| `nombre` | `VARCHAR(100)` | NO | - | Código o nombre asignado (ej. "Galpón 1"). |
+| `aforo_maximo` | `INT` | NO | - | Capacidad máxima de aves autorizada. |
+| `estado` | `VARCHAR(30)` | NO | - | Estado operativo sincronizado (`EstadoGalpon`). |
+| `fecha_hora_sync` | `TIMESTAMP` | NO | - | Estampa de tiempo de la última ingesta desde M1. |
+
+---
+
+### C. Tabla `lote` (Entidad `Lote` — Copia Local M1)
+Reflejo local sincronizado de la parvada alojada en un galpón desde Módulo 1.
+
+| Campo | Tipo SQL | Nulo | Llave | Descripción y Regla de Negocio |
+| :--- | :--- | :--- | :--- | :--- |
+| `id_lote` | `UUID` | NO | PK | Identificador global único del lote (M1). |
+| `id_galpon` | `UUID` | NO | FK | Referencia al galpón asignado en M1. |
+| `nombre` | `VARCHAR(100)` | NO | - | Código del lote (ej. "Lote L-2026-A"). |
+| `fecha_ingreso` | `DATE` | NO | - | Fecha de encasetamiento de la parvada. |
+| `poblacion_inicial` | `INT` | NO | - | Cantidad inicial de aves ingresadas. |
+| `poblacion_actual` | `INT` | NO | - | Aves vivas según el último reporte de M1. |
+| `costo_total_cop` | `BIGINT` | NO | - | Costo inicial de adquisición del lote de pollitos. |
+| `fecha_hora_sync` | `TIMESTAMP` | NO | - | Estampa de tiempo de la última ingesta desde M1. |
+
+---
+
+### D. Tabla `partida_costo_lote` (Entidad `PartidaCostoLote`)
+Detalle de las partidas de gasto congeladas asignadas a una liquidación.
+
+| Campo | Tipo SQL | Nulo | Llave | Descripción y Regla de Negocio |
+| :--- | :--- | :--- | :--- | :--- |
+| `id_partida` | `BIGSERIAL` | NO | PK | Identificador único autoincremental de la partida. |
+| `id_liquidacion` | `BIGINT` | NO | FK | Referencia a la liquidación asociada. |
+| `id_lote` | `UUID` | NO | - | Referencia al lote evaluado. |
+| `categoria` | `VARCHAR(20)` | NO | - | Clasificación (`ALIMENTO`, `MEDICINA`, `POBLACION`). |
+| `concepto` | `VARCHAR(200)` | NO | - | Nombre del ítem (ej. "Alimento Engorde Fase 2"). |
+| `cantidad` | `NUMERIC(12,3)` | NO | - | Cantidad consumida expresada en la unidad de medida. |
+| `unidad_medida` | `VARCHAR(30)` | NO | - | Unidad de presentación (`KG`, `DOSIS`, `AVES`). |
+| `precio_unitario_cop` | `NUMERIC(14,2)` | NO | - | Precio unitario aplicado. |
+| `subtotal_cop` | `BIGINT` | NO | - | `cantidad × precio_unitario_cop` en entero COP. |
+| `fuente_origen` | `VARCHAR(20)` | NO | - | Módulo emisor (`MODULO_1`, `MODULO_2`). |
+| `referencia_origen` | `VARCHAR(200)` | SI | - | UUID o código de transacción origen. |
 
 ---
 
 ## 2. Entidades Secundarias y de Auditoría
 
-### A. Registro de Anulación (`RegistroAnulacion`)
-Auditoría inalterable que documenta la cancelación formal de una liquidación activa.
-- **`idAnulacion`** (`BIGSERIAL`, PK): Identificador del evento de anulación.
-- **`idLiquidacion`** (`BIGINT`, NOT NULL, UNIQUE, FK): Referencia a la liquidación anulada.
-- **`motivo`** (`VARCHAR(500)`, NOT NULL): Explicación justificada del usuario (entre 10 y 500 caracteres).
-- **`fechaHoraAnulacion`** (`TIMESTAMP`, NOT NULL): Estampa de tiempo del evento.
-- **`usuarioResponsable`** (`VARCHAR(100)`, NOT NULL): Usuario autenticado que ejecutó la anulación.
+### A. Tabla `registro_anulacion` (Entidad `RegistroAnulacion`)
+Auditoría inalterable de cancelaciones de liquidaciones activas.
 
-### B. Bitácora de Sincronización (`RegistroSincronizacion`)
-Trazabilidad de las ejecuciones periódicas `@Scheduled` o por evento Kafka.
-- **`id`** (`BIGSERIAL`, PK): Identificador único del log.
-- **`fuente`** (`VARCHAR(20)`, NOT NULL): Módulo fuente consultado (`MODULO_1`, `MODULO_2`).
-- **`fechaHoraInicio`** (`TIMESTAMP`, NOT NULL): Hora de inicio del proceso de sincronización.
-- **`fechaHoraFin`** (`TIMESTAMP`, NULLABLE): Hora de finalización.
-- **`resultado`** (`VARCHAR(20)`, NULLABLE): Estado final (`EXITOSA`, `FALLIDA`).
-- **`descripcionError`** (`TEXT`, NULLABLE): Detalle técnico del fallo si aplica.
-- **`registrosActualizados`** (`INT`, DEFAULT 0): Conteo de filas creadas o actualizadas.
+| Campo | Tipo SQL | Nulo | Llave | Descripción |
+| :--- | :--- | :--- | :--- | :--- |
+| `id_anulacion` | `BIGSERIAL` | NO | PK | Identificador único de la anulación. |
+| `id_liquidacion` | `BIGINT` | NO | UQ/FK | Referencia a la liquidación anulada (1 a 1). |
+| `motivo` | `VARCHAR(500)` | NO | - | Justificación escrita del usuario (10 a 500 caracteres). |
+| `fecha_hora_anulacion` | `TIMESTAMP` | NO | - | Estampa de tiempo exacta del evento. |
+| `usuario_responsable` | `VARCHAR(100)` | NO | - | Usuario autenticado que anuló. |
 
-### C. Snapshot de Datos de Origen (`SnapshotDatosOrigen`)
-Fotografía inmutable de las cifras maestras de M1 y M2 al momento exacto de generar la liquidación.
-- **`id`** (`BIGSERIAL`, PK): Identificador interno.
-- **`idLiquidacion`** (`BIGINT`, NOT NULL, FK): Referencia a la liquidación congelada.
-- **`fuente`** (`VARCHAR(20)`, NOT NULL): `MODULO_1` o `MODULO_2`.
-- **`fechaHoraSync`** (`TIMESTAMP`, NOT NULL): Estampa de tiempo de los datos sincronizados utilizados.
-- **`poblacionInicial`** (`INT`, NULLABLE): Población inicial registrada en la foto.
-- **`poblacionActual`** (`INT`, NULLABLE): Población viva al momento de la foto.
-- **`costoTotalLoteCop`** (`BIGINT`, NULLABLE): Costo total del lote en la foto.
+---
 
-### D. Aviso de Utilización de Resultado (`AvisoUtilizacionResultado`)
-Registro de entrega saliente hacia Módulo 2 notificando que el resultado de sacrificio fue consumido.
-- **`idAviso`** (`BIGSERIAL`, PK): Identificador interno.
-- **`idResultado`** (`UUID`, NOT NULL, FK): UUID del resultado final de sacrificio de M2.
-- **`idLiquidacion`** (`BIGINT`, NULLABLE): ID de la liquidación que lo utilizó.
-- **`fechaHoraEmision`** (`TIMESTAMP`, NOT NULL): Estampa de tiempo de envío.
-- **`estadoEntrega`** (`VARCHAR(20)`, NOT NULL): `PENDIENTE` o `ENTREGADO`.
-- **`intentos`** (`INT`, NOT NULL, DEFAULT 0): Conteo de reintentos realizados.
+### B. Tabla `registro_sincronizacion` (Entidad `RegistroSincronizacion`)
+Log de ejecuciones de ingesta periódica `@Scheduled` o por eventos Kafka.
+
+| Campo | Tipo SQL | Nulo | Llave | Descripción |
+| :--- | :--- | :--- | :--- | :--- |
+| `id` | `BIGSERIAL` | NO | PK | Identificador único del registro de sync. |
+| `fuente` | `VARCHAR(20)` | NO | - | Módulo consultado (`MODULO_1`, `MODULO_2`). |
+| `fecha_hora_inicio` | `TIMESTAMP` | NO | - | Inicio del ciclo de ingesta. |
+| `fecha_hora_fin` | `TIMESTAMP` | SI | - | Finalización del ciclo. |
+| `resultado` | `VARCHAR(20)` | SI | - | `EXITOSA` o `FALLIDA`. |
+| `descripcion_error` | `TEXT` | SI | - | Traza o detalle del fallo si ocurrió. |
+| `registros_actualizados` | `INT` | NO | - | Filas creadas o modificadas (Default: 0). |
+
+---
+
+### C. Tabla `snapshot_datos_origen` (Entidad `SnapshotDatosOrigen`)
+Captura inmutable de métricas maestras al momento de liquidar.
+
+| Campo | Tipo SQL | Nulo | Llave | Descripción |
+| :--- | :--- | :--- | :--- | :--- |
+| `id` | `BIGSERIAL` | NO | PK | Identificador de la foto. |
+| `id_liquidacion` | `BIGINT` | NO | FK | Liquidación asociada. |
+| `fuente` | `VARCHAR(20)` | NO | - | `MODULO_1` o `MODULO_2`. |
+| `fecha_hora_sync` | `TIMESTAMP` | NO | - | Hora de la sincronización usada. |
+| `poblacion_inicial` | `INT` | SI | - | Población inicial congelada. |
+| `poblacion_actual` | `INT` | SI | - | Población viva congelada. |
+| `costo_total_lote_cop` | `BIGINT` | SI | - | Costo inicial del lote congelado. |
+
+---
+
+### D. Tabla `aviso_utilizacion_resultado` (Entidad `AvisoUtilizacionResultado`)
+Notificación saliente hacia Módulo 2 indicando que el sacrificio fue consumido.
+
+| Campo | Tipo SQL | Nulo | Llave | Descripción |
+| :--- | :--- | :--- | :--- | :--- |
+| `id_aviso` | `BIGSERIAL` | NO | PK | Identificador del aviso saliente. |
+| `id_resultado` | `UUID` | NO | FK | Referencia al resultado final de sacrificio. |
+| `id_liquidacion` | `BIGINT` | SI | - | Liquidación que lo consumió. |
+| `fecha_hora_emision` | `TIMESTAMP` | NO | - | Fecha y hora de transmisión. |
+| `estado_entrega` | `VARCHAR(20)` | NO | - | `PENDIENTE` o `ENTREGADO`. |
+| `intentos` | `INT` | NO | - | Reintentos acumulados. |
 
 ---
 
 ## 3. Catálogos y Enumeraciones del Sistema
 
 ### `EstadoGalpon` (Enum)
-Catálogo compartido de estados operativos de un galpón (sincronizado desde M1):
-1. **`DISPONIBLE`**: Galpón limpio, desinfectado y listo para recibir un nuevo lote.
-2. **`VACIADO_SANITARIO`**: Aves retiradas completamente; periodo de descanso y sanitización. Estado requerido para habilitar la liquidación.
-3. **`PRODUCTIVO`**: Aves en etapa de engorde y crecimiento activo.
-4. **`EN_COSECHA`**: Proceso de retiro y despacho de aves hacia centro de sacrificio.
-5. **`MANTENIMIENTO`**: Galpón fuera de servicio por reparaciones locativas o de equipo.
-6. **`AISLAMIENTO`**: Galpón bajo cuarentena o medida biosanitaria preventiva.
+- **`DISPONIBLE`**: Galpón sanitizado y listo para encasetar.
+- **`VACIADO_SANITARIO`**: Aves retiradas; sanitización en curso. *(Requerido para liquidar)*.
+- **`PRODUCTIVO`**: Aves en crecimiento activo.
+- **`EN_COSECHA`**: Despacho de pollos en progreso.
+- **`MANTENIMIENTO`**: Reparaciones locativas.
+- **`AISLAMIENTO`**: Medida biosanitaria preventiva.
 
 ### `EstadoLiquidacion` (Enum)
-Ciclo de vida del documento financiero de liquidación en M3:
-1. **`ACTIVA`**: Liquidación vigente, inmutable y oficial del lote.
-2. **`ANULADA`**: Liquidación anulada por error o corrección. No altera los indicadores activos.
+- **`ACTIVA`**: Documento financiero oficial e inmutable.
+- **`ANULADA`**: Cancelada formalmente por el usuario.
 
 ### `EstadoUtilizacion` (Enum)
-Estado del resultado final de sacrificio recibido de M2:
-1. **`NO_UTILIZADO`**: Resultado sincronizado disponible para ser incorporado en una liquidación.
-2. **`UTILIZADO`**: Resultado ya consumido por una liquidación activa.
+- **`NO_UTILIZADO`**: Sacrificio disponible para liquidar.
+- **`UTILIZADO`**: Sacrificio incorporado en una liquidación activa.
 
 ### `CategoriaCosto` (Enum)
-Clasificación de las partidas de gasto en la liquidación:
-1. **`ALIMENTO`**: Partidas de concentrado y suplementos (origen M2).
-2. **`MEDICINA`**: Consumos de fármacos, vacunas y tratamientos (origen M2).
-3. **`POBLACION`**: Costo inicial de adquisición de la parvada (origen M1).
+- **`ALIMENTO`**: Concentrados y suplementos (M2).
+- **`MEDICINA`**: Vacunas y tratamientos (M2).
+- **`POBLACION`**: Adquisición inicial de la parvada (M1).
 
 ### `FuenteSincronizacion` (Enum)
-Módulos externos de origen:
-1. **`MODULO_1`**: Módulo de Gestión de Galpones y Parvadas.
-2. **`MODULO_2`**: Módulo de Operaciones, Sacrificio e Insumos.
+- **`MODULO_1`**: Sistema de Galpones y Parvadas.
+- **`MODULO_2`**: Sistema de Operaciones, Sacrificio e Insumos.
 
 ### `ResultadoSincronizacion` (Enum)
-1. **`EXITOSA`**: Proceso de ingesta completado sin errores.
-2. **`FALLIDA`**: Ocurrió un fallo de conexión, timeout o parseo.
+- **`EXITOSA`**: Ingesta procesada correctamente.
+- **`FALLIDA`**: Error de comunicación o parseo.

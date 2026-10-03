@@ -1,7 +1,7 @@
 # Implementation Plan: Sincronización de Datos Locales (M1 y M2)
 
 **Date**: 2026-09-28  
-**Actualizado**: 2026-10-02  
+**Actualizado**: 2026-10-03  
 **Specs**:
 - [m3-cu07-consultar-galpon-lote-m1](../m3-cu07-consultar-galpon-lote-m1/spec.md) – Consultar Galpón y Lote al M1  
 - [m3-cu08-consultar-resultado-sacrificio-m2](../m3-cu08-consultar-resultado-sacrificio-m2/spec.md) – Consultar Resultado Final de Sacrificio al M2  
@@ -21,7 +21,42 @@ Este subsistema se encarga de la **sincronización e ingesta de datos locales** 
 - **Target Platform**: JVM 21 / Docker Container
 - **Project Type**: Backend service (capa de sincronización e integración)
 - **Performance Goals**: Sincronización periódica eficiente (< 3s por ciclo), reintentos con backoff ante fallos de conexión
-- **Constraints**: Operación autónoma en M3 sobre copia local previa si M1 o M2 están indisponibles; actualización idempotente sin duplicar registros ni alterar datos de liquidaciones generadas.
+
+---
+
+## Esquema SQL DDL de la Copia Local (Flyway V1 y V2)
+
+```sql
+-- V1__create_sync_tables.sql
+CREATE TABLE registro_sincronizacion (
+    id                BIGSERIAL PRIMARY KEY,
+    fuente            VARCHAR(20) NOT NULL,
+    fecha_hora_inicio TIMESTAMP NOT NULL,
+    fecha_hora_fin    TIMESTAMP,
+    resultado         VARCHAR(20),
+    descripcion_error TEXT,
+    registros_actualizados INT DEFAULT 0
+);
+
+CREATE TABLE galpon (
+    id_galpon     UUID PRIMARY KEY,
+    nombre        VARCHAR(100) NOT NULL,
+    aforo_maximo  INT NOT NULL,
+    estado        VARCHAR(30) NOT NULL,
+    fecha_hora_sync TIMESTAMP NOT NULL
+);
+
+CREATE TABLE lote (
+    id_lote            UUID PRIMARY KEY,
+    id_galpon          UUID NOT NULL REFERENCES galpon(id_galpon),
+    nombre             VARCHAR(100) NOT NULL,
+    fecha_ingreso      DATE NOT NULL,
+    poblacion_inicial  INT NOT NULL,
+    poblacion_actual   INT NOT NULL,
+    costo_total_cop    BIGINT NOT NULL,
+    fecha_hora_sync    TIMESTAMP NOT NULL
+);
+```
 
 ---
 
@@ -58,63 +93,110 @@ Este subsistema se encarga de la **sincronización e ingesta de datos locales** 
 }
 ```
 
-### C. Payload Saliente de Aviso de Utilización (M3 → M2)
-```json
-{
-  "idAviso": 101,
-  "idResultado": "456e7890-e89b-12d3-a456-426614174000",
-  "idLiquidacion": 1045,
-  "fechaHoraEmision": "2026-10-02T15:30:00Z",
-  "estadoEntrega": "ENTREGADO"
+---
+
+## Snippets de Código Java de Puertos e Integración
+
+### Puerto de Salida: `Modulo1Port.java`
+```java
+package co.edu.unimagdalena.avicontrol.domain.port.out;
+
+import co.edu.unimagdalena.avicontrol.domain.model.Galpon;
+import java.util.List;
+
+public interface Modulo1Port {
+    List<Galpon> obtenerGalponesYLotesVigentes();
+}
+```
+
+### Consumidor Kafka: `SacrificioKafkaListener.java`
+```java
+package co.edu.unimagdalena.avicontrol.infrastructure.adapter.client;
+
+import co.edu.unimagdalena.avicontrol.application.service.sync.SyncSacrificioService;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+
+@Component
+public class SacrificioKafkaListener {
+
+    private final SyncSacrificioService syncSacrificioService;
+
+    public SacrificioKafkaListener(SyncSacrificioService syncSacrificioService) {
+        this.syncSacrificioService = syncSacrificioService;
+    }
+
+    @KafkaListener(topics = "avicontrol.m2.resultados-sacrificio", groupId = "avicontrol-modulo3-sync-group")
+    public void consumirResultadoSacrificio(String eventoJson) {
+        syncSacrificioService.procesarEventoResultadoSacrificio(eventoJson);
+    }
+}
+```
+
+### Servicio de Sincronización: `SyncModulo1Service.java`
+```java
+package co.edu.unimagdalena.avicontrol.application.service.sync;
+
+import co.edu.unimagdalena.avicontrol.domain.port.out.GalponRepository;
+import co.edu.unimagdalena.avicontrol.domain.port.out.Modulo1Port;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class SyncModulo1Service {
+
+    private final Modulo1Port modulo1Port;
+    private final GalponRepository galponRepository;
+
+    public SyncModulo1Service(Modulo1Port modulo1Port, GalponRepository galponRepository) {
+        this.modulo1Port = modulo1Port;
+        this.galponRepository = galponRepository;
+    }
+
+    @Scheduled(cron = "${sync.cron.m1:0 */15 * * * *}")
+    @Transactional
+    public void ejecutarSincronizacionModulo1() {
+        try {
+            var galpones = modulo1Port.obtenerGalponesYLotesVigentes();
+            galpones.forEach(galponRepository::guardarOActualizar);
+        } catch (Exception e) {
+            // Log en registro_sincronizacion sin romper el timer
+        }
+    }
 }
 ```
 
 ---
 
-## Integración con Apache Kafka
-
-- **Tópico de Lectura M1**: `avicontrol.m1.alertas-vaciado`
-- **Tópico de Lectura M2**: `avicontrol.m2.resultados-sacrificio`
-- **Tópico de Escritura M3**: `avicontrol.m3.avisos-utilizacion`
-
----
-
 ## Phase 1: Foundational – Esquema SQL e Infraestructura de Sincronización
 
-**Purpose**: Crear tablas de copia local y repositorios base.
-
-- [ ] **T001** Crear migración Flyway `V1__create_sync_tables.sql` (`registro_sincronizacion`, `galpon`, `lote`, `alerta_vaciado_sanitario`, `resultado_final_sacrificio`, `aviso_utilizacion_resultado`).
-- [ ] **T002** Crear migración Flyway `V2__create_partidas_tables.sql` (`partida_alimento_lote`, `consumo_medicamento_lote`, `tramo_recepcion_consumo`).
-- [ ] **T003** Crear entidades JPA y repositorios Spring Data para las tablas de copia local y bitácora.
-- [ ] **T004** Crear modelos de dominio y mappers Entity ↔ Domain.
+- [ ] **T001** Crear migración Flyway `V1__create_sync_tables.sql`.
+- [ ] **T002** Crear migración Flyway `V2__create_partidas_tables.sql`.
+- [ ] **T003** Crear entidades JPA y repositorios Spring Data.
+- [ ] **T004** Crear modelos de dominio y mappers.
 
 ---
 
 ## Phase 2: CU07 – Sincronización M1 (Galpones, Lotes y Alertas)
 
-**Purpose**: Sincronización periódica idempotente desde Módulo 1.
-
-- [ ] **T005** Crear puerto `Modulo1Port` y su adaptador `Modulo1RestAdapter` / `Modulo1KafkaConsumer`.
-- [ ] **T006** Unit Test `SyncModulo1ServiceTest.java`: casos de sync exitosa, actualización incremental, fallo M1 con/sin copia previa y datos inválidos.
-- [ ] **T007** Crear `SyncModulo1Service.java`: consulta M1, persiste copia local y registra bitácora en `registro_sincronizacion`.
+- [ ] **T005** Crear puerto `Modulo1Port` y su adaptador `Modulo1RestAdapter` / `SacrificioKafkaListener`.
+- [ ] **T006** Unit Test `SyncModulo1ServiceTest.java`.
+- [ ] **T007** Crear `SyncModulo1Service.java`.
 
 ---
 
 ## Phase 3: CU08 – Sincronización M2 Sacrificio y Aviso de Utilización
 
-**Purpose**: Ingesta de resultados finales de sacrificio y emisión de aviso saliente.
-
-- [ ] **T008** Crear puertos `Modulo2SacrificioPort` y `AvisoUtilizacionPort` con sus adaptadores REST/Kafka.
-- [ ] **T009** Unit Test `SyncSacrificioServiceTest.java`: verificación de cantidad > 0, peso > 0, actualización pre-utilización y rechazo de duplicados.
-- [ ] **T010** Crear `SyncSacrificioService.java` y `AvisoUtilizacionService.java`: recepción de sacrificios y despacho asíncrono reintentable del aviso de utilización.
+- [ ] **T008** Crear puertos `Modulo2SacrificioPort` y `AvisoUtilizacionPort`.
+- [ ] **T009** Unit Test `SyncSacrificioServiceTest.java`.
+- [ ] **T010** Crear `SyncSacrificioService.java` y `AvisoUtilizacionService.java`.
 
 ---
 
 ## Phase 4: CU09 y CU10 – Sincronización M2 (Alimento y Medicamentos)
 
-**Purpose**: Ingesta de partidas de alimento y consumos de medicina por tramos.
-
-- [ ] **T011** Crear puertos `Modulo2AlimentoPort` y `Modulo2MedicamentoPort` con sus adaptadores.
-- [ ] **T012** Unit Test `SyncAlimentoServiceTest.java` y `SyncMedicamentoServiceTest.java`: verificación de marcas de valorización, preservación de tramos de recepción y no promediación prematura de precios.
+- [ ] **T011** Crear puertos `Modulo2AlimentoPort` y `Modulo2MedicamentoPort`.
+- [ ] **T012** Unit Test `SyncAlimentoServiceTest.java` y `SyncMedicamentoServiceTest.java`.
 - [ ] **T013** Implementar `SyncAlimentoService.java` y `SyncMedicamentoService.java`.
-- [ ] **T014** Configurar `@Scheduled(cron = "${sync.cron.m2:0 */15 * * * *}")` en `SyncSchedulerConfig.java` para disparar periódicamente las tareas de ingesta.
+- [ ] **T014** Configurar `@Scheduled` en `SyncSchedulerConfig.java`.
