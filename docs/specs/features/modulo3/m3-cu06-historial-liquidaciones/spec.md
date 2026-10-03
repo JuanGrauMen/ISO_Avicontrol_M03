@@ -47,7 +47,12 @@ Como administrador financiero, quiero consultar el historial cronológico de tod
 6.**Scenario**: Paginación de la lista
    - **Given** la copia local sincronizada contiene más de 8 lotes
    - **When** el administrador financiero accede al listado
-   - **Then** el sistema muestra únicamente los primeros 8 registros, sin importar el total disponible, y presenta al pie de la lista de resultados la cantidad mostrada frente al total (por ejemplo, "8 de 12 lotes"); el usuario avanza a los registros restantes mediante una acción explícita de paginación
+   - **Then** el sistema muestra únicamente los primeros 8 registros, sin importar el total disponible, y presenta al pie de la lista de resultados la cantidad mostrada frente al total (por ejemplo, "8 de 12 liquidaciones"); el usuario avanza a los registros restantes mediante una acción explícita de paginación
+
+7. **Scenario**: Restablecimiento de filtros
+   - **Given** se visualiza el historial con un galpón seleccionado, un rango de fechas distinto del predeterminado, o ambos
+   - **When** el usuario presiona "Limpiar"
+   - **Then** el sistema restablece el filtro de galpón a "Todos los galpones" y el rango de fechas a su valor predeterminado, descarta cualquier alerta de validación del rango, muestra el listado completo desde la primera página y actualiza el pie de la lista (por ejemplo, "8 de 12 liquidaciones")
 
 ---
 
@@ -57,7 +62,8 @@ Como administrador financiero, quiero consultar el historial cronológico de tod
 - **Rendimiento con alto volumen**: El sistema mantiene paginación o carga eficiente para soportar historiales de hasta 24 meses con múltiples ciclos por galpón.
 - **Varias Liquidaciones por lote**: Un lote puede aparecer varias veces en el historial si tuvo Liquidaciones anuladas, pero como máximo una de ellas estará en estado `ACTIVA`.
 - **Lote desvinculado del galpón**: Las Liquidaciones de lotes ya desvinculados siguen siendo consultables y filtrables por galpón, porque la Liquidación conserva los UUID históricos de galpón y lote tomados de la alerta de vaciado sanitario.
-- **Paginación tras aplicar filtro o búsqueda:**Al cambiar el filtro por fecha o el término de búsqueda, el sistema MUST reiniciar la paginación en la primera página.
+- **Paginación tras aplicar filtro o búsqueda:** Al cambiar el filtro por fecha o el término de búsqueda, el sistema MUST reiniciar la paginación en la primera página.
+-  **"Limpiar" tras un resultado vacío o un rango inválido**: Si los filtros retornaron "No se encontraron liquidaciones para los criterios de búsqueda aplicados", o si el rango de fechas estaba invertido, "Limpiar" devuelve el listado completo y elimina la alerta. Si no existen Liquidaciones, el sistema muestra "No hay liquidaciones registradas aún".
 
 ---
 
@@ -73,8 +79,10 @@ Como administrador financiero, quiero consultar el historial cronológico de tod
 - **FR-006**: El sistema MUST permitir seleccionar un registro del historial para visualizar la Liquidación correspondiente (M3-CU03.FR-014). El desglose pormenorizado (M3-CU05) se consulta desde esa vista.
 - **FR-007**: Ante la ausencia de registros, el sistema MUST desplegar un mensaje descriptivo según el contexto (vacío total o sin resultados para los filtros).
 - **FR-008**: El sistema MUST construir el historial exclusivamente a partir de las Liquidaciones almacenadas en M3, sin requerir consultas a Módulo 1 ni a Módulo 2.
-- **FR-009**: El sistema MUST mostrar como máximo 8 lotes por página, sin importar cuántos registros resulten del filtro o búsqueda aplicados. Si el total de registros es mayor a 8, el sistema MUST paginar y mostrar únicamente los primeros 8 en la página inicial.
-- - **FR-010**: El sistema MUST indicar, al pie de la lista de resultados, la cantidad de lotes mostrados en la página actual frente al total de registros disponibles (por ejemplo, "8 de 12 lotes").
+- **FR-009**: El sistema MUST mostrar como máximo 8 liquidaciones por página, sin importar cuántos registros resulten del filtro o búsqueda aplicados. Si el total de registros es mayor a 8, el sistema MUST paginar y mostrar únicamente los primeros 8 en la página inicial.
+- **FR-010**: El sistema MUST indicar, al pie de la lista de resultados, la cantidad de lotes mostrados en la página actual frente al total de registros disponibles (por ejemplo, "8 de 12 liquidaciones").
+- **FR-011**: El sistema MUST ofrecer la acción "Limpiar", que limpia los filtros activos y reinicia la paginación en la primera página. La acción MUST no mostrarse cuando no haya filtros activos.
+  
 
 ### Key Entities
 
