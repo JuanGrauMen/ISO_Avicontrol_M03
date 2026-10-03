@@ -118,7 +118,7 @@ public class DesgloseController {
 
 ## Phase 1: CU06 – Historial Cronológico de Liquidaciones
 
-- [ ] **T001** Crear puerto `ConsultarHistorialUseCase.java` y DTO `HistorialFiltroDto.java`.
+- [ ] **T001** Crear puerto `ConsultarHistorialUseCase.java` en `domain/port/in/` y DTO `HistorialFiltroDto.java` en `domain/port/in/dto/`.
 - [ ] **T002** Unit Test `ConsultarHistorialServiceTest.java`.
 - [ ] **T003** Implementar `ConsultarHistorialService.java`.
 - [ ] **T004** Integration Test e implementación de `GET /api/v1/liquidaciones` en `HistorialController.java`; verificar que cada fila incluye el `idLiquidacion` que sirve de enlace a la vista de Liquidación (M3-CU03.FR-014), no al desglose directamente.
@@ -127,7 +127,7 @@ public class DesgloseController {
 
 ## Phase 2: CU05 – Consultar Desglose de Ventas y Gastos
 
-- [ ] **T005** Crear puerto `ConsultarDesgloseUseCase.java` y DTO `DesgloseDto.java`.
+- [ ] **T005** Crear puerto `ConsultarDesgloseUseCase.java` en `domain/port/in/` y DTO `DesgloseDto.java` en `domain/port/in/dto/`.
 - [ ] **T006** Unit Test `ConsultarDesgloseServiceTest.java`.
 - [ ] **T007** Implementar `ConsultarDesgloseService.java`.
 - [ ] **T008** Integration Test e implementación de `GET /api/v1/liquidaciones/{id}/desglose` en `DesgloseController.java`.

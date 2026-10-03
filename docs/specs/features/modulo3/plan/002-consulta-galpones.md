@@ -93,7 +93,7 @@ HTTP/1.1 200 OK
 ```java
 package co.edu.unimagdalena.avicontrol.domain.port.in;
 
-import co.edu.unimagdalena.avicontrol.application.dto.LotePageDto;
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.LotePageDto;
 
 public interface ListarLotesUseCase {
     /**
@@ -124,7 +124,7 @@ public interface LoteRepository {
 
 ### DTOs de Respuesta: `LoteResumenDto.java` y `LotePageDto.java`
 ```java
-package co.edu.unimagdalena.avicontrol.application.dto;
+package co.edu.unimagdalena.avicontrol.domain.port.in.dto;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -162,8 +162,8 @@ public record LotePageDto(
 ```java
 package co.edu.unimagdalena.avicontrol.application.service;
 
-import co.edu.unimagdalena.avicontrol.application.dto.LotePageDto;
-import co.edu.unimagdalena.avicontrol.application.dto.LoteResumenDto;
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.LotePageDto;
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.LoteResumenDto;
 import co.edu.unimagdalena.avicontrol.domain.port.in.ListarLotesUseCase;
 import co.edu.unimagdalena.avicontrol.domain.port.out.LoteRepository;
 import co.edu.unimagdalena.avicontrol.domain.port.out.LiquidacionRepository;
@@ -258,7 +258,7 @@ public class ListarLotesService implements ListarLotesUseCase {
 ```java
 package co.edu.unimagdalena.avicontrol.infrastructure.adapter.rest;
 
-import co.edu.unimagdalena.avicontrol.application.dto.LotePageDto;
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.LotePageDto;
 import co.edu.unimagdalena.avicontrol.domain.port.in.ListarLotesUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -292,7 +292,7 @@ public class LoteController {
 ## Phase 1: Puertos y DTOs
 
 - [ ] **T001** Crear puerto `ListarLotesUseCase.java` en `domain/port/in/`.
-- [ ] **T002** Crear DTOs `LoteResumenDto.java` y `LotePageDto.java`.
+- [ ] **T002** Crear DTOs `LoteResumenDto.java` y `LotePageDto.java` en `domain/port/in/dto/`.
 
 ---
 

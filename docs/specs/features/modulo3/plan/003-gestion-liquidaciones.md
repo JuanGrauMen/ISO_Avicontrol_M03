@@ -220,9 +220,9 @@ HTTP/1.1 200 OK
 ```java
 package co.edu.unimagdalena.avicontrol.domain.port.in;
 
-import co.edu.unimagdalena.avicontrol.application.dto.LiquidacionPreviaDto;
-import co.edu.unimagdalena.avicontrol.application.dto.LiquidacionDto;
-import co.edu.unimagdalena.avicontrol.application.dto.AnulacionDto;
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.LiquidacionPreviaDto;
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.LiquidacionDto;
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.AnulacionDto;
 import java.math.BigDecimal;
 import java.util.UUID;
 
@@ -357,7 +357,7 @@ public class AnularLiquidacionService implements AnularLiquidacionUseCase {
 ```java
 package co.edu.unimagdalena.avicontrol.infrastructure.adapter.rest;
 
-import co.edu.unimagdalena.avicontrol.application.dto.*;
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.*;
 import co.edu.unimagdalena.avicontrol.domain.port.in.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

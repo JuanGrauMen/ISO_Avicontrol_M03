@@ -65,8 +65,9 @@ El Módulo 3 se implementa con **Arquitectura Limpia por Capas**. Las dependenci
 ```
 
 ### Capa `domain/`
-Contiene el modelo de negocio puro: entidades (`Liquidacion`, `Galpon`, `Lote`, etc.), enums, value objects, reglas de redondeo e interfaces de repositorio.
-- **Regla estricta**: Java puro. No importa Spring, JPA, Jackson, Kafka ni clases de las otras capas.
+Contiene el modelo de negocio puro: entidades (`Liquidacion`, `Galpon`, `Lote`, etc.), enums, value objects, reglas de redondeo, interfaces de repositorios (`port/out`) y puertos de entrada de casos de uso (`port/in`).
+- **DTOs de casos de uso**: Bajo Arquitectura Limpia Estricta, los DTOs consumidos o retornados por las interfaces de los casos de uso (ej. `LoteResumenDto`, `LiquidacionDto`, `AnulacionDto`) se ubican dentro de `co.edu.unimagdalena.avicontrol.domain.port.in.dto`. Esto garantiza que la capa `domain` no tenga dependencias apuntando hacia afuera (`application`).
+- **Regla estricta**: Java puro. No importa Spring, JPA, Jackson, Kafka ni clases de las capas externas (`application` o `infrastructure`).
 
 ### Capa `service/` (Aplicación)
 Contiene los servicios de aplicación que implementan los casos de uso, orquestan el dominio y coordinan la sincronización periódica con M1 y M2. Define el límite transaccional y no conoce detalles de HTTP, JPA ni Kafka.
