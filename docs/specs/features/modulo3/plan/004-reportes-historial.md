@@ -24,15 +24,84 @@ Este plan aborda la **consulta histórica cronológica** de liquidaciones (`CU06
 
 ---
 
-## Snippets de Código Java de Puertos, Servicio Apache POI y Controlador
+## Snippets de Código Java de Puertos, DTOs, Servicio Apache POI y Controlador
 
-### Puerto de Entrada: `ExportarExcelUseCase.java`
+### Puertos de Entrada
 ```java
 package co.edu.unimagdalena.avicontrol.domain.port.in;
 
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.DesgloseDto;
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.HistorialPageDto;
+import java.time.LocalDate;
+import java.util.UUID;
+
+/** CU06 — Consultar historial cronológico filtrado */
+public interface ConsultarHistorialUseCase {
+    HistorialPageDto consultarHistorial(UUID idGalpon, LocalDate fechaInicio, LocalDate fechaFin, int page, int size);
+}
+
+/** CU05 — Consultar proyección de desglose de ventas y gastos */
+public interface ConsultarDesgloseUseCase {
+    DesgloseDto consultarDesglose(Long idLiquidacion);
+}
+
+/** CU05 — Generar y descargar reporte Excel (.xlsx) */
 public interface ExportarExcelUseCase {
     byte[] generarReporteExcelLiquidacion(Long idLiquidacion);
 }
+```
+
+### DTOs de Respuesta: `HistorialPageDto.java` y `DesgloseDto.java`
+```java
+package co.edu.unimagdalena.avicontrol.domain.port.in.dto;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+public record HistorialItemDto(
+    Long idLiquidacion,
+    Instant fechaHoraLiquidacion,
+    UUID idGalpon,
+    String nombreGalpon,
+    UUID idLote,
+    String nombreLote,
+    long ventaBrutaCop,
+    BigDecimal porcentajeMortalidad,
+    long costosOperativosCop,
+    long utilidadNetaCop,
+    String estado                 // "ACTIVA" | "ANULADA"
+) {}
+
+public record HistorialPageDto(
+    List<HistorialItemDto> content,
+    int page,
+    int size,
+    long totalElements,
+    int totalPages
+) {}
+
+public record PartidaDesgloseDto(
+    String concepto,
+    BigDecimal cantidad,
+    String unidadMedida,
+    BigDecimal precioUnitarioCop,
+    long subtotalCop,
+    String referenciaOrigen
+) {}
+
+public record DesgloseDto(
+    Long idLiquidacion,
+    String estado,
+    boolean esSiniestroTotal,
+    List<PartidaDesgloseDto> partidasAlimento,
+    List<PartidaDesgloseDto> partidasInsumosMedicos,
+    List<PartidaDesgloseDto> partidasCostoPoblacion,
+    long totalCostosOperativosCop,
+    long ventaBrutaCop,
+    long utilidadNetaCop
+) {}
 ```
 
 ### Servicio Apache POI: `ExportarExcelService.java`
@@ -86,7 +155,9 @@ public class ExportarExcelService implements ExportarExcelUseCase {
 ```java
 package co.edu.unimagdalena.avicontrol.infrastructure.adapter.rest;
 
+import co.edu.unimagdalena.avicontrol.domain.port.in.ConsultarDesgloseUseCase;
 import co.edu.unimagdalena.avicontrol.domain.port.in.ExportarExcelUseCase;
+import co.edu.unimagdalena.avicontrol.domain.port.in.dto.DesgloseDto;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -96,10 +167,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/liquidaciones")
 public class DesgloseController {
 
+    private final ConsultarDesgloseUseCase consultarDesgloseUseCase;
     private final ExportarExcelUseCase exportarExcelUseCase;
 
-    public DesgloseController(ExportarExcelUseCase exportarExcelUseCase) {
+    public DesgloseController(ConsultarDesgloseUseCase consultarDesgloseUseCase,
+                              ExportarExcelUseCase exportarExcelUseCase) {
+        this.consultarDesgloseUseCase = consultarDesgloseUseCase;
         this.exportarExcelUseCase = exportarExcelUseCase;
+    }
+
+    @GetMapping("/{id}/desglose")
+    public ResponseEntity<DesgloseDto> consultarDesglose(@PathVariable Long id) {
+        return ResponseEntity.ok(consultarDesgloseUseCase.consultarDesglose(id));
     }
 
     @GetMapping("/{id}/desglose/excel")
@@ -118,7 +197,7 @@ public class DesgloseController {
 
 ## Phase 1: CU06 – Historial Cronológico de Liquidaciones
 
-- [ ] **T001** Crear puerto `ConsultarHistorialUseCase.java` en `domain/port/in/` y DTO `HistorialFiltroDto.java` en `domain/port/in/dto/`.
+- [ ] **T001** Crear puerto `ConsultarHistorialUseCase.java` en `domain/port/in/` y DTOs `HistorialItemDto.java` y `HistorialPageDto.java` en `domain/port/in/dto/`.
 - [ ] **T002** Unit Test `ConsultarHistorialServiceTest.java`.
 - [ ] **T003** Implementar `ConsultarHistorialService.java`.
 - [ ] **T004** Integration Test e implementación de `GET /api/v1/liquidaciones` en `HistorialController.java`; verificar que cada fila incluye el `idLiquidacion` que sirve de enlace a la vista de Liquidación (M3-CU03.FR-014), no al desglose directamente.
