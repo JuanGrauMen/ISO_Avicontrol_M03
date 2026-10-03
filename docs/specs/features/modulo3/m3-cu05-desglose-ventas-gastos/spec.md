@@ -1,7 +1,7 @@
 # Feature Specification: M3-CU05 – Consultar Desglose de Ventas y Gastos
 
 **Created**: 2026-08-31  
-**Actualizado**: 2026-09-21  
+**Actualizado**: 2026-10-03  
 **Módulo**: 3 – Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)  
 **Rol Principal**: Administrador Financiero  
 
@@ -20,7 +20,7 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
 **Acceptance Scenarios**:
 
 1. **Scenario**: Visualización del desglose completo por categorías
-   - **Given** un lote con Liquidación en estado `ACTIVA` que incluye partidas de alimento (Pre-inicio, Inicio, Engorde/Broiler), partidas de insumos médicos y costo inicial de adquisición de aves
+   - **Given** un lote con Liquidación en estado `ACTIVA` que incluye partidas de alimento (Pre-inicio, Inicio, Engorde), partidas de insumos médicos y costo inicial de adquisición de aves
    - **When** el administrador financiero accede a la vista de desglose
    - **Then** el sistema presenta una tabla estructurada por categorías donde cada fila detalla: Concepto, Cantidad, Unidad de medida, Precio unitario aplicado (COP) y Subtotal valorizado (COP)
    - **And** la suma de los subtotales de egreso coincide con exactitud al peso con el valor de Costos Operativos de la Liquidación
@@ -64,7 +64,7 @@ Como administrador financiero, quiero consultar en pantalla y exportar a Excel e
   - **Ingresos**: datos de venta de la Liquidación (pollos vendidos, peso total kg, peso promedio kg, precio por kg y Venta Bruta), tal como se presentan en la Matriz de Venta Final. En siniestro total, la sección se presenta con Venta Bruta igual a \$0 COP.
   - **Alimento**: detalle por partida y tipo (Pre-inicio, Inicio, Engorde, etc.) con cantidad, precio aplicado por kg y subtotal en COP.
   - **Insumos Médicos**: detalle por consumo de medicamento o vacuna con cantidad en unidad base, unidad de medida, precio unitario histórico y subtotal en COP.
-  - **Población Inicial**: costo total del lote informado por Módulo 1, no acumulativo.
+  - **Costo de Población**: costo total del lote informado por Módulo 1 (M3-CU07), no acumulativo. Mismo concepto y nombre que en M3-CU03.FR-003; no confundir con la población inicial en aves, que solo interviene en la Mortalidad del Lote.
 - **FR-002**: La suma de los subtotales de todas las partidas de costo MUST ser idéntica al peso al campo `costosOperativosCop` de la Liquidación (cero discrepancias).
 - **FR-003**: El sistema MUST proveer exportación a formato Excel (`.xlsx`) con la información del lote, la Matriz de Venta Final (resultado final de sacrificio, precio por kg e indicadores consolidados) y el desglose de costos.
 - **FR-004**: Para Liquidaciones en estado `ANULADA`, el sistema MUST restringir la vista a solo lectura, presentar un encabezado visual prominente de anulación con los datos del registro de anulación (M3-CU04) y deshabilitar la exportación a Excel.

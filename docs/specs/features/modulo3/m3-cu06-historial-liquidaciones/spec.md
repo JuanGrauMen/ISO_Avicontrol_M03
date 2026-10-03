@@ -1,7 +1,7 @@
 # Feature Specification: M3-CU06 – Consultar Historial de Liquidaciones
 
 **Created**: 2026-08-31  
-**Actualizado**: 2026-09-18  
+**Actualizado**: 2026-10-03  
 **Módulo**: 3 – Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)  
 **Rol Principal**: Administrador Financiero  
 
@@ -48,7 +48,7 @@ Como administrador financiero, quiero consultar el historial cronológico de tod
 
 ### Edge Cases
 
-- **Navegación al detalle**: Al seleccionar cualquier registro del historial, el sistema permite abrir el desglose completo de esa Liquidación (M3-CU05).
+- **Navegación al detalle**: Al seleccionar cualquier registro del historial, el sistema abre la vista de esa Liquidación (M3-CU03.FR-014), desde la cual se consulta su desglose (M3-CU05).
 - **Rendimiento con alto volumen**: El sistema mantiene paginación o carga eficiente para soportar historiales de hasta 24 meses con múltiples ciclos por galpón.
 - **Varias Liquidaciones por lote**: Un lote puede aparecer varias veces en el historial si tuvo Liquidaciones anuladas, pero como máximo una de ellas estará en estado `ACTIVA`.
 - **Lote desvinculado del galpón**: Las Liquidaciones de lotes ya desvinculados siguen siendo consultables y filtrables por galpón, porque la Liquidación conserva los UUID históricos de galpón y lote tomados de la alerta de vaciado sanitario.
@@ -64,7 +64,7 @@ Como administrador financiero, quiero consultar el historial cronológico de tod
 - **FR-003**: El sistema MUST permitir filtrar las Liquidaciones por galpón específico (o todos) y por rango de fechas (desde – hasta).
 - **FR-004**: El sistema MUST mostrar de forma clara y visible el estado de cada Liquidación, asegurando que las anuladas sean reconocibles de inmediato, y MUST permitir consultar su registro de anulación.
 - **FR-005**: El sistema MUST validar que la fecha inicial del filtro sea menor o igual a la fecha final.
-- **FR-006**: El sistema MUST permitir seleccionar un registro del historial para visualizar su desglose pormenorizado en M3-CU05.
+- **FR-006**: El sistema MUST permitir seleccionar un registro del historial para visualizar la Liquidación correspondiente (M3-CU03.FR-014). El desglose pormenorizado (M3-CU05) se consulta desde esa vista.
 - **FR-007**: Ante la ausencia de registros, el sistema MUST desplegar un mensaje descriptivo según el contexto (vacío total o sin resultados para los filtros).
 - **FR-008**: El sistema MUST construir el historial exclusivamente a partir de las Liquidaciones almacenadas en M3, sin requerir consultas a Módulo 1 ni a Módulo 2.
 

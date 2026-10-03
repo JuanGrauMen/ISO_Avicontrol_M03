@@ -18,17 +18,17 @@
         <mxCell id="_83M_CjQah1QZdysBcNE-16" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Administrador &lt;br&gt;financiero" vertex="1">
           <mxGeometry height="60" width="30" x="-750" y="1160" as="geometry" />
         </mxCell>
-        <mxCell id="_83M_CjQah1QZdysBcNE-38" edge="1" parent="1" source="_83M_CjQah1QZdysBcNE-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="_83M_CjQah1QZdysBcNE-33">
+        <mxCell id="_83M_CjQah1QZdysBcNE-38" edge="1" parent="1" source="_83M_CjQah1QZdysBcNE-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="_83M_CjQah1QZdysBcNE-33">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_83M_CjQah1QZdysBcNE-19" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="Consultar Lista de Galpones" vertex="1">
+        <mxCell id="_83M_CjQah1QZdysBcNE-19" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="Consultar Lista de Lotes" vertex="1">
           <mxGeometry height="60" width="130" x="-544" y="1060" as="geometry" />
         </mxCell>
         <mxCell id="_83M_CjQah1QZdysBcNE-37" edge="1" parent="1" source="_83M_CjQah1QZdysBcNE-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;" target="_83M_CjQah1QZdysBcNE-21" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_83M_CjQah1QZdysBcNE-21" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="generar liquidacion" vertex="1">
-          <mxGeometry height="60" width="130" x="-350" y="1130" as="geometry" />
+        <mxCell id="_83M_CjQah1QZdysBcNE-21" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="Generar Liquidación del Lote" vertex="1">
+          <mxGeometry height="60" width="160" x="-365" y="1130" as="geometry" />
         </mxCell>
         <mxCell id="_83M_CjQah1QZdysBcNE-22" edge="1" parent="1" source="_83M_CjQah1QZdysBcNE-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="_83M_CjQah1QZdysBcNE-21">
           <mxGeometry relative="1" as="geometry" />
@@ -57,16 +57,16 @@
         <mxCell id="_83M_CjQah1QZdysBcNE-30" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="Consultar&lt;div&gt;&amp;nbsp;galpón y lote&amp;nbsp;&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="130" x="-80" y="1150" as="geometry" />
         </mxCell>
-        <mxCell id="_83M_CjQah1QZdysBcNE-33" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="desglose de ventas y gastos" vertex="1">
-          <mxGeometry height="60" width="130" x="-350" y="1000" as="geometry" />
+        <mxCell id="_83M_CjQah1QZdysBcNE-33" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="Consultar Desglose de Ventas y Gastos" vertex="1">
+          <mxGeometry height="60" width="160" x="-365" y="1000" as="geometry" />
         </mxCell>
-        <mxCell id="_83M_CjQah1QZdysBcNE-34" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="Consultar historial de&amp;nbsp; liquidaciones" vertex="1">
+        <mxCell id="_83M_CjQah1QZdysBcNE-34" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="Consultar Historial de Liquidaciones" vertex="1">
           <mxGeometry height="60" width="130" x="-540" y="1250" as="geometry" />
         </mxCell>
         <mxCell id="_83M_CjQah1QZdysBcNE-35" edge="1" parent="1" source="_83M_CjQah1QZdysBcNE-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="_83M_CjQah1QZdysBcNE-34">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_83M_CjQah1QZdysBcNE-36" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="Anular liquidacion&amp;nbsp;" vertex="1">
+        <mxCell id="_83M_CjQah1QZdysBcNE-36" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="Anular Liquidación" vertex="1">
           <mxGeometry height="60" width="130" x="-350" y="1250" as="geometry" />
         </mxCell>
         <mxCell id="_83M_CjQah1QZdysBcNE-40" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;" value="Consultar resultado final de sacrificio" vertex="1">

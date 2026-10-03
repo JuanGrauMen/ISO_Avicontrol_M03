@@ -73,7 +73,7 @@ Las especificaciones M3-CU07 a M3-CU10 documentan cada punto de consulta. Ningun
 
 | ID | Nombre | Prioridad | Depende de | Especificación |
 | :--- | :--- | :--- | :--- | :--- |
-| M3-CU01 | Consultar Lista de Galpones | P1 | M3-CU07 (punto de entrada) | [m3-cu01-lista-galpones/spec.md](m3-cu01-lista-galpones/spec.md) |
+| M3-CU01 | Consultar Lista de Lotes | P1 | M3-CU07 (punto de entrada) | [m3-cu01-lista-lotes/spec.md](m3-cu01-lista-lotes/spec.md) |
 | M3-CU02 | *(eliminado — unificado en M3-CU03)* | — | — | — |
 | M3-CU03 | Generar Liquidación del Lote | P1 | M3-CU01 · M3-CU07 · M3-CU08 · M3-CU09 · M3-CU10 | [m3-cu03-generar-liquidacion/spec.md](m3-cu03-generar-liquidacion/spec.md) |
 | M3-CU04 | Anular Liquidación | P1 | M3-CU03 | [m3-cu04-anular-liquidacion/spec.md](m3-cu04-anular-liquidacion/spec.md) |
@@ -127,7 +127,7 @@ El módulo se considera ACEPTADO cuando se cumplen TODOS:
 ## Criterios de Éxito Medibles del Módulo
 
 - **SC-001**: 100% de liquidaciones de prueba coinciden exactamente con cálculo manual verificado.
-- **SC-002**: Del clic en "lista de galpones" a la liquidación en pantalla transcurren menos de 30 segundos.
+- **SC-002**: Del clic en "lista de lotes" a la liquidación en pantalla transcurren menos de 30 segundos.
 - **SC-003**: Cada cifra es trazable a su origen en ≤ 3 interacciones de navegación.
 - **SC-004**: 10 usuarios concurrentes completan consultas dentro de los tiempos definidos en cada spec sin errores.
 - **SC-005**: En el primer ciclo real, el 90% de los lotes vendidos quedan liquidados sin reprocesos manuales.
