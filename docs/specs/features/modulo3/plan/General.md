@@ -180,9 +180,7 @@ erDiagram
     }
 ```
 
-> **Nota — Restricciones UNIQUE**: Mermaid `erDiagram` no admite múltiples calificadores en un atributo. Las siguientes restricciones existen en el DDL aunque no se representan con `UK` en el diagrama:
-> - `liquidacion.id_lote` → `CONSTRAINT uq_lote_activa UNIQUE (id_lote)` — máximo una Liquidación `ACTIVA` por lote.
-> - `registro_anulacion.id_liquidacion` → `UNIQUE` — una sola anulación por Liquidación.
+
 
 ---
 
