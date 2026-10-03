@@ -44,41 +44,85 @@ Este documento define la arquitectura, las tecnologías, el modelo de datos rela
 El Módulo 3 se implementa con **Arquitectura Limpia por Capas**. Las dependencias siempre apuntan hacia adentro: la infraestructura depende del servicio, y el servicio depende del dominio. El dominio no conoce nada de las capas externas.
 
 ```text
-┌─────────────────────────────────────────┐
-│            infrastructure/              │
-│  ┌──────────────────────────────────┐   │
-│  │   Spring · LiquidacionController │   │
-│  │   LiquidacionDataAdapter         │   │
-│  │  ┌───────────────────────────┐   │   │
-│  │  │       service/            │   │   │
-│  │  │   LiquidacionService      │   │   │
-│  │  │  ┌─────────────────────┐  │   │   │
-│  │  │  │      domain/        │  │   │   │
-│  │  │  │  entities:          │  │   │   │
-│  │  │  │    Liquidacion      │  │   │   │
-│  │  │  │  repository:        │  │   │   │
-│  │  │  │    LiquidacionRepo  │  │   │   │
-│  │  │  └─────────────────────┘  │   │   │
-│  │  └───────────────────────────┘   │   │
-│  └──────────────────────────────────┘   │
-└─────────────────────────────────────────┘
+co.edu.unimagdalena.avicontrol/
+├── domain/                            ← Núcleo. Cero dependencias externas.
+│   ├── model/                         ← Entidades puras: Liquidacion, Lote, Galpon…
+│   ├── port/
+│   │   ├── in/                        ← Interfaces de casos de uso (Puertos de entrada)
+│   │   │   ├── ListarLotesUseCase.java
+│   │   │   ├── GenerarLiquidacionUseCase.java
+│   │   │   ├── PreviewLiquidacionUseCase.java
+│   │   │   ├── ConsultarLiquidacionUseCase.java
+│   │   │   ├── AnularLiquidacionUseCase.java
+│   │   │   ├── ConsultarHistorialUseCase.java
+│   │   │   ├── ConsultarDesgloseUseCase.java
+│   │   │   ├── ExportarExcelUseCase.java
+│   │   │   └── dto/                   ← DTOs de casos de uso (Arquitectura Limpia Estricta) ★
+│   │   │       ├── LoteResumenDto.java
+│   │   │       ├── LotePageDto.java
+│   │   │       ├── LiquidacionPreviaDto.java
+│   │   │       ├── LiquidacionDto.java
+│   │   │       ├── AnulacionDto.java
+│   │   │       ├── HistorialFiltroDto.java
+│   │   │       └── DesgloseDto.java
+│   │   └── out/                       ← Interfaces de repositorios y gateways (Puertos de salida)
+│   │       ├── LoteRepository.java
+│   │       ├── LiquidacionRepository.java
+│   │       ├── AlertaVaciadoSanitarioRepository.java
+│   │       ├── Modulo1Port.java
+│   │       └── Modulo2SacrificioPort.java
+│   └── shared/                        ← Reglas transversales: Rounding.java
+│
+├── application/                       ← Servicios de aplicación. Orquesta dominio.
+│   └── service/
+│       ├── ListarLotesService.java
+│       ├── GenerarLiquidacionService.java
+│       ├── ConsultarLiquidacionService.java
+│       ├── AnularLiquidacionService.java
+│       ├── ConsultarHistorialService.java
+│       ├── ConsultarDesgloseService.java
+│       ├── ExportarExcelService.java
+│       └── sync/
+│           ├── SyncModulo1Service.java
+│           ├── SyncSacrificioService.java
+│           ├── SyncAlimentoService.java
+│           └── SyncMedicamentoService.java
+│
+└── infrastructure/                    ← Adaptadores técnicos. Conoce Spring, JPA, Kafka.
+    ├── adapter/
+    │   ├── rest/                      ← Controladores HTTP de entrada
+    │   │   ├── LoteController.java
+    │   │   ├── LiquidacionController.java
+    │   │   ├── DesgloseController.java
+    │   │   └── HistorialController.java
+    │   ├── client/                    ← Adaptadores de salida: REST y Kafka hacia M1 y M2
+    │   │   ├── Modulo1RestAdapter.java
+    │   │   ├── SacrificioKafkaListener.java
+    │   │   └── AvisoUtilizacionRestAdapter.java
+    │   └── persistence/               ← Entidades JPA (@Entity), Repositories Spring Data y Mappers
+    ├── config/                        ← Configuración: JWT, OpenAPI, Scheduler, Clock, Actuator
+    └── exception/                     ← @ControllerAdvice → ProblemDetail RFC 7807
 ```
 
+> **★ Regla de Dependencias (Arquitectura Limpia Estricta)**: 
+> 1. Los DTOs consumidos o retornados por los casos de uso se ubican en `co.edu.unimagdalena.avicontrol.domain.port.in.dto` como `record`s de Java puro.
+> 2. La capa `domain/` **NUNCA importa clases de `application/` ni de `infrastructure/`**. Todas las dependencias apuntan exclusivamente hacia el centro del dominio.
+> 3. Los mappers que transforman entre entidades JPA y DTOs de dominio residen en la capa de `infrastructure` o `application`.
+
 ### Capa `domain/`
-Contiene el modelo de negocio puro: entidades (`Liquidacion`, `Galpon`, `Lote`, etc.), enums, value objects, reglas de redondeo, interfaces de repositorios (`port/out`) y puertos de entrada de casos de uso (`port/in`).
-- **DTOs de casos de uso**: Bajo Arquitectura Limpia Estricta, los DTOs consumidos o retornados por las interfaces de los casos de uso (ej. `LoteResumenDto`, `LiquidacionDto`, `AnulacionDto`) se ubican dentro de `co.edu.unimagdalena.avicontrol.domain.port.in.dto`. Esto garantiza que la capa `domain` no tenga dependencias apuntando hacia afuera (`application`).
+Contiene el modelo de negocio puro: entidades (`Liquidacion`, `Galpon`, `Lote`, etc.), enums, value objects, reglas de redondeo, interfaces de repositorios (`port/out`), puertos de entrada de casos de uso (`port/in`) y sus DTOs asociados (`port/in/dto`).
 - **Regla estricta**: Java puro. No importa Spring, JPA, Jackson, Kafka ni clases de las capas externas (`application` o `infrastructure`).
 
-### Capa `service/` (Aplicación)
-Contiene los servicios de aplicación que implementan los casos de uso, orquestan el dominio y coordinan la sincronización periódica con M1 y M2. Define el límite transaccional y no conoce detalles de HTTP, JPA ni Kafka.
+### Capa `application/` (Servicios)
+Contiene los servicios de aplicación que implementan las interfaces `port/in`, orquestan el dominio y coordinan la sincronización periódica con M1 y M2. Define el límite transaccional (`@Transactional`) y no conoce detalles de controladores HTTP, JPA ni serialización.
 
 ### Capa `infrastructure/`
 Contiene los adaptadores concretos:
 - **`adapter/rest/`**: Controladores REST API (entrada HTTP).
-- **`adapter/client/`**: Clientes REST/Kafka para consumir y publicar eventos con Módulo 1 y Módulo 2.
+- **`adapter/client/`**: Clientes REST y listeners Kafka para consumir y publicar eventos con Módulo 1 y Módulo 2.
 - **`adapter/persistence/`**: Entidades JPA (`@Entity`), repositorios Spring Data y mappers hacia el dominio.
 - **`config/`**: Configuración de Spring Security (JWT), OpenAPI, Scheduler, Clock, Actuator.
-- **`exception/`**: Manejador global de excepciones (`@ControllerAdvice`).
+- **`exception/`**: Manejador global de excepciones (`@ControllerAdvice`) con RFC 7807 (`ProblemDetail`).
 
 ---
 
@@ -181,7 +225,9 @@ erDiagram
     }
 ```
 
-
+> **Nota — Restricciones UNIQUE**: Mermaid `erDiagram` no admite múltiples calificadores en un atributo. Las siguientes restricciones existen en el DDL aunque no se representan con `UK` en el diagrama:
+> - `liquidacion.id_lote` → `CONSTRAINT uq_lote_activa UNIQUE (id_lote)` — máximo una Liquidación `ACTIVA` por lote.
+> - `registro_anulacion.id_liquidacion` → `UNIQUE` — una sola anulación por Liquidación.
 
 ---
 
