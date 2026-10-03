@@ -8,7 +8,11 @@
 
 ## Summary
 
-Este plan aborda la **consulta histórica cronológica** de liquidaciones (`CU06`) y la **visualización y exportación en Excel del desglose pormenorizado de ventas y gastos** (`CU05`). Permite al Administrador Financiero filtrar el historial por galpón y rango de fechas (orden descendente por fecha de generación), consultar el desglose agrupado por categorías de costo (alimento, medicina, población) garantizando que los subtotales cuadran exactamente con los Costos Operativos de la liquidación, y generar y descargar el reporte `.xlsx` formateado mediante Apache POI (`poi-ooxml:5.2.5`).
+Este plan aborda la **consulta histórica cronológica** de liquidaciones (`CU06`) y la **visualización y exportación en Excel del desglose pormenorizado de ventas y gastos** (`CU05`).
+
+**Historial (CU06)**: Permite al Administrador Financiero filtrar liquidaciones por galpón y rango de fechas (orden descendente). Al seleccionar cualquier fila, el sistema abre la **vista de la Liquidación** (M3-CU03.FR-014) — no el desglose directamente. El Desglose se consulta desde la propia vista de la Liquidación (CU06.FR-006).
+
+**Desglose (CU05)**: Visualización agrupada por categorías de costo — **Alimento**, **Insumos Médicos** y **Costo de Población** (renombrada desde "Población Inicial" para alinear con CU03.FR-003 y CU07) — garantizando que los subtotales cuadran exactamente con `costosOperativosCop` de la Liquidación (FR-002). Exportación a `.xlsx` con Apache POI (`poi-ooxml:5.2.5`).
 
 ## Technical Context
 
@@ -117,7 +121,7 @@ public class DesgloseController {
 - [ ] **T001** Crear puerto `ConsultarHistorialUseCase.java` y DTO `HistorialFiltroDto.java`.
 - [ ] **T002** Unit Test `ConsultarHistorialServiceTest.java`.
 - [ ] **T003** Implementar `ConsultarHistorialService.java`.
-- [ ] **T004** Integration Test e implementación de `GET /api/v1/liquidaciones` en `HistorialController.java`.
+- [ ] **T004** Integration Test e implementación de `GET /api/v1/liquidaciones` en `HistorialController.java`; verificar que cada fila incluye el `idLiquidacion` que sirve de enlace a la vista de Liquidación (M3-CU03.FR-014), no al desglose directamente.
 
 ---
 
