@@ -61,7 +61,7 @@ docs/
         ├── spec.md                        # ÍNDICE NORMATIVO: glosario, RT, CA-G, SC, D-01..D-07
         ├── plan/plan-v2.md                # PLAN TÉCNICO GENERAL de los 9 CU (arquitectura, clases, tareas), versionado
         ├── CAMBIOS.md                     # registro de cambios conceptuales y sus motivos
-        ├── m3-cu01-lista-galpones/spec.md
+        ├── m3-cu01-lista-lotes/spec.md
         ├── m3-cu03-generar-liquidacion/spec.md
         ├── m3-cu04-anular-liquidacion/spec.md
         ├── m3-cu05-desglose-ventas-gastos/spec.md

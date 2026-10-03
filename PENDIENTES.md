@@ -14,14 +14,15 @@ Cosas que voy dejando para después. Se van tachando cuando se resuelven.
 
 ## Diagrama vs. specs (lo que no se tocó)
 
-- [ ] Desglose: en el diagrama cuelga de *Consultar Lista de Galpones*; en el spec CU05 depende de CU03 (los datos salen de la Liquidación). Decidir si se mueve la flecha en el diagrama o se deja.
+- [ ] Desglose: en el diagrama cuelga de *Consultar Lista de Galpones*. Desde el 2026-10-03 el desglose se abre desde la vista de la Liquidación (CU03.FR-014), no desde la lista: mover la flecha a CU03.
+- [ ] Renombrar el óvalo *Consultar Lista de Galpones* → *Consultar Lista de Lotes* (CU01 cambió de unidad el 2026-10-03).
 - [ ] Las flechas entre casos de uso no tienen `«include»`/`«extend»` (CAMBIOS.md §6, punto 8).
 - [ ] Actualizar el diagrama con el nombre real del CU04 (*Anular Liquidación*, hoy dice "Anular liquidacion" sin tilde) y normalizar mayúsculas de los óvalos.
 
 ## Primer prototipo de pantallas (decidido el 2026-09-21)
 
-- Pantallas: P1 Lista de Galpones, P2 Generar Liquidación, P3 diálogo Anular, P4 Desglose, P5 Historial. Contenido de cada una: en su spec.
-- Decisiones ya llevadas a los specs: usuario fijo sin login (`spec.md` supuestos), acciones en la fila sin detalle intermedio (CU01 FR-004/005), Anular solo desde Generar (CU04 FR-002b), indicador de sincronización en todas las pantallas (RT-09).
+- Pantallas: P1 Lista de Lotes, P2 Generar Liquidación, P3 diálogo Anular, P4 Desglose, P5 Historial. Contenido de cada una: en su spec.
+- Decisiones ya llevadas a los specs: usuario fijo sin login (`spec.md` supuestos), acciones en la fila sin detalle intermedio (CU01 FR-004/005), Anular desde la vista de la Liquidación `ACTIVA` (CU04 FR-002b, revisado el 2026-10-03), indicador de sincronización en todas las pantallas (RT-09).
 - [ ] A criterio del diseñador: layout de la Matriz de Venta Final en P2 y forma visual del indicador de sincronización.
 - [ ] **Exportar a Excel (CU05) queda fuera del primer prototipo**; el spec lo sigue exigiendo para la versión final.
 - [ ] Cotejar el Figma existente (README) contra el inventario: es anterior a la unificación y seguramente tiene "Registrar Matriz de Ventas".
