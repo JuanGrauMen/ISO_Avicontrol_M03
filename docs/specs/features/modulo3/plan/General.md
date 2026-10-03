@@ -89,11 +89,12 @@ Contiene los adaptadores concretos:
 erDiagram
     galpon ||--o{ lote : alberga
     galpon ||--o{ alerta_vaciado_sanitario : genera
+    alerta_vaciado_sanitario }o--|| lote : referencia
     lote ||--o{ resultado_final_sacrificio : produce
     lote ||--o{ partida_alimento_lote : consume
     lote ||--o{ consumo_medicamento_lote : requiere
     consumo_medicamento_lote ||--o{ tramo_recepcion_consumo : desglosa
-    
+
     lote ||--o| liquidacion : liquida
     resultado_final_sacrificio ||--o| liquidacion : consolida
     liquidacion ||--o{ partida_costo_lote : congela
@@ -120,9 +121,16 @@ erDiagram
         timestamp fecha_hora_sync
     }
 
+    alerta_vaciado_sanitario {
+        uuid id_alerta PK
+        uuid id_galpon FK
+        uuid id_lote FK
+        timestamp fecha_hora_evento
+    }
+
     liquidacion {
         bigint id_liquidacion PK
-        uuid id_lote FK, UQ
+        uuid id_lote FK
         uuid id_galpon FK
         uuid id_resultado_sacrificio FK
         int pollos_vendidos
@@ -155,7 +163,7 @@ erDiagram
 
     registro_anulacion {
         bigint id_anulacion PK
-        bigint id_liquidacion FK, UQ
+        bigint id_liquidacion FK
         string motivo
         timestamp fecha_hora_anulacion
         string usuario_responsable
@@ -172,7 +180,12 @@ erDiagram
     }
 ```
 
+> **Nota — Restricciones UNIQUE**: Mermaid `erDiagram` no admite múltiples calificadores en un atributo. Las siguientes restricciones existen en el DDL aunque no se representan con `UK` en el diagrama:
+> - `liquidacion.id_lote` → `CONSTRAINT uq_lote_activa UNIQUE (id_lote)` — máximo una Liquidación `ACTIVA` por lote.
+> - `registro_anulacion.id_liquidacion` → `UNIQUE` — una sola anulación por Liquidación.
+
 ---
+
 
 ### B. Scripts SQL DDL Completos (Flyway Migrations)
 
