@@ -1,7 +1,7 @@
 # Registro de Cambios — Specs del Módulo 3
 
-**Fecha**: 2026-09-18 (§1–§6) · 2026-09-21 (§7)  
-**Alcance**: Reestructuración de las especificaciones de `specs/features/modulo3/` de 5 a 10 casos de uso (§1–§6) y unificación de la Matriz de Ventas en la Liquidación (§7).
+**Fecha**: 2026-09-18 (§1–§6) · 2026-09-21 (§7) · 2026-10-03 (§8)  
+**Alcance**: Reestructuración de las especificaciones de `specs/features/modulo3/` de 5 a 10 casos de uso (§1–§6), unificación de la Matriz de Ventas en la Liquidación (§7) y revisión de los specs contra el prototipo de Figma (§8).
 
 ---
 
@@ -184,3 +184,43 @@ Las carpetas se renombran en consecuencia. El nuevo nombre de M3-CU09 **no cierr
 - Decisiones D-01 a D-07: todas siguen abiertas.
 - Siniestro total: sigue liquidándose sin resultado de sacrificio y ahora también sin precio por kg.
 
+---
+
+## 8. Revisión de specs contra el prototipo (2026-10-03)
+
+### Motivo
+
+La revisión pantalla por pantalla del prototipo de Figma expuso cinco problemas en los specs: la lista de galpones no servía para liquidar lotes (el profesor pidió listar lotes); ningún spec definía dónde se consulta una Liquidación ya generada, y la anulación quedaba sin punto de entrada alcanzable; la Liquidación inmutable se generaba sin que el usuario viera el resultado; el costo de compra de los pollitos tenía dos nombres; y el siniestro total no se distinguía en la lista.
+
+### Qué cambia
+
+| Elemento | Antes | Ahora |
+| :--- | :--- | :--- |
+| **M3-CU01** | *Consultar Lista de Galpones*; una fila por galpón con su estado operativo | **Consultar Lista de Lotes.** Una fila por lote. Carpeta `m3-cu01-lista-galpones/` → `m3-cu01-lista-lotes/` |
+| **Estado mostrado en la lista** | Estado del galpón (6 valores, incluidos `Disponible` y `Mantenimiento`, que nunca describen un lote) | **Etapa del lote**, derivada por M3 (**FR-013** nuevo): `Productivo` · `En Cosecha` · `Aislamiento` · `Por Liquidar` · `Liquidado`. El catálogo de 6 estados del galpón se conserva en FR-003 como dato recibido de M1 (lo usa M3-CU07.FR-011) |
+| **Columna de mortalidad en la lista** | % de mortalidad por fila | **Eliminada.** La mortalidad se presenta en la Liquidación |
+| **Acciones de la fila (CU01.FR-004/FR-005)** | Dos botones: "Generar liquidación" y "Ver desglose" | **Un solo botón según la etapa**: `Por Liquidar` → Generar · `Liquidado` → **Ver liquidación** · demás etapas → Generar deshabilitado. La lista no da acceso directo al Desglose ni a la anulación |
+| **Siniestro total en la lista** | Indistinguible | **Distintivo "Siniestro total"** junto a la etapa cuando la población actual es 0 (CU01.FR-001, **escenario 11** nuevo) |
+| **Consulta de una Liquidación existente** | No definida en ningún spec | **M3-CU03.FR-014** y **escenario 11**: vista de la Liquidación (`ACTIVA` o `ANULADA`) desde la lista y el historial, con acceso al Desglose y, si está `ACTIVA`, a la anulación |
+| **Punto de entrada a la anulación (CU04.FR-002b)** | Solo desde CU03 escenario 8 (inalcanzable tras el botón único) | Desde la **vista de la Liquidación `ACTIVA`** (CU03.FR-014). CU04.FR-010 agrega esa vista a los lugares donde se consulta el registro de anulación |
+| **Historial → detalle (CU06.FR-006)** | Abría el Desglose | Abre la **Liquidación**; el Desglose se consulta desde ella |
+| **Generación de la Liquidación (CU03)** | Un paso: precio → generar | **Dos pasos (FR-015)**: captura del precio → **vista previa no persistida** (con aviso visible de que aún no se generó, que **no es un estado**) → "Generar liquidación". "Volver" no deja registro. Escenarios 1, 3 y 6 ajustados; **escenario 12** nuevo (abandono de la vista previa); caso borde nuevo: si la sincronización cambia datos durante la vista previa, se recalcula y se advierte |
+| **FR-006 de CU03** | "No se permiten liquidaciones preliminares" | Aclara que la vista previa no es una liquidación preliminar: no se persiste, no tiene estado y no aparece en el historial |
+| **Término "Liquidación Final"** (CU03 esc. 1, commit `eabcfd9`) | Cuarto nombre no definido en el glosario | **"Matriz de Venta Final"**, como en el glosario |
+| **Categoría del Desglose (CU05.FR-001)** | "Población Inicial" | **"Costo de Población"**, igual que CU03.FR-003 y CU07. "Población inicial" queda reservado para la cantidad de aves de la mortalidad |
+| **Índice `spec.md`** | "Consultar Lista de Galpones"; SC-002 "lista de galpones" | "Consultar Lista de Lotes"; SC-002 "lista de lotes" |
+
+### Escenarios
+
+CU01 pasa de 9 a 11 escenarios y CU03 de 10 a 12. Los casos de uso internos suman **38** escenarios (antes 34).
+
+### Qué no cambia
+
+- Fórmulas de Venta Bruta, Mortalidad del Lote, Costos Operativos y Utilidad Neta.
+- Modelo de integración: M3 sigue sin pedir ni enviar nada nuevo a M1 ni a M2. La etapa del lote y el distintivo de siniestro se derivan de datos que M3 ya recibe (CU07) y de sus propias Liquidaciones.
+- Estados de la Liquidación: solo `ACTIVA` y `ANULADA`.
+- Decisiones D-01 a D-07: todas siguen abiertas. El distintivo de siniestro y la etapa `Por Liquidar` dependen de **D-04** y **D-02**.
+
+### Pendiente
+
+- ~~Actualizar `docs/diagramas/Modulo3_v1.drawio`~~ Hecho el 2026-10-03: óvalo *Consultar Lista de Lotes*; el Desglose cuelga de *Generar Liquidación del Lote*; nombres alineados con los specs (*Generar Liquidación del Lote*, *Anular Liquidación*, *Consultar Desglose de Ventas y Gastos*, *Consultar Historial de Liquidaciones*). Falta regenerar `Modulo3_v1.drawio.png` desde draw.io.

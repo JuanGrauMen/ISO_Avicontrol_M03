@@ -1,7 +1,7 @@
 # Feature Specification: M3-CU03 – Generar Liquidación del Lote
 
 **Created**: 2026-08-31  
-**Actualizado**: 2026-09-21  
+**Actualizado**: 2026-10-03  
 **Módulo**: 3 – Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)  
 **Rol Principal**: Administrador Financiero  
 
@@ -21,14 +21,15 @@ Como administrador financiero, quiero generar la Liquidación económica definit
 
 1. **Scenario**: Generación exitosa de Liquidación definitiva (Caso Dorado)
    - **Given** una alerta de vaciado sanitario que conserva los UUID de un galpón y su lote, con Población Inicial sincronizada de 9.000 aves y Población Actual sincronizada de 8.500 aves (origen M1), un resultado final de sacrificio sincronizado desde M2 de 8.500 pollos y 23.800 kg totales, y Costos Operativos valorizados de \$85.000.000 COP (alimento, medicina y costo inicial de pollitos)
-   - **When** el administrador financiero ingresa un precio de \$4.500 COP/kg y solicita generar la Liquidación
-   - **Then** el sistema calcula y presenta la Liquidación Final:
+   - **When** el administrador financiero ingresa un precio de \$4.500 COP/kg y pulsa "Siguiente"
+   - **Then** el sistema calcula y presenta, sin persistir ningún registro, la vista previa de la Liquidación como Matriz de Venta Final:
      - **Venta Bruta**: \$107.100.000 COP (`23.800 kg × 4.500`)
      - **Mortalidad del Lote**: 500 aves (`9.000 − 8.500`), equivalente al 5,56% (`(500 / 9.000) × 100`)
      - **Costos Operativos**: \$85.000.000 COP
      - **Utilidad Neta**: \$22.100.000 COP (`107.100.000 − 85.000.000`)
      - Datos de venta: 8.500 pollos vendidos, 23.800 kg, peso promedio 2,8 kg, \$4.500 COP/kg
-     - Estado de la Liquidación: `ACTIVA`, con fecha, hora y usuario responsable
+   - **And When** el administrador confirma con "Generar liquidación" en la vista previa
+   - **Then** el sistema persiste la Liquidación con los mismos valores mostrados, en estado `ACTIVA`, con fecha, hora y usuario responsable
 
 2. **Scenario**: Bloqueo por lote sin resultado final de sacrificio sincronizado
    - **Given** una alerta de vaciado sanitario que identifica un lote con población actual mayor a 0 y sin resultado final de sacrificio válido sincronizado desde Módulo 2
@@ -37,8 +38,8 @@ Como administrador financiero, quiero generar la Liquidación económica definit
 
 3. **Scenario**: Rechazo por precio por kg no positivo
    - **Given** un lote liquidable con resultado final de sacrificio válido
-   - **When** el administrador ingresa un precio por kg menor o igual a 0 COP
-   - **Then** el sistema rechaza el formulario, no genera la Liquidación e indica explícitamente el campo con valor no permitido
+   - **When** el administrador ingresa un precio por kg menor o igual a 0 COP y pulsa "Siguiente"
+   - **Then** el sistema rechaza el formulario, no avanza a la vista previa, no genera la Liquidación e indica explícitamente el campo con valor no permitido
 
 4. **Scenario**: Bloqueo por partidas de costo sin precio configurado
    - **Given** un lote liquidable con partidas de alimento o medicina sincronizadas desde Módulo 2 que carecen de precio unitario aplicable
@@ -52,7 +53,7 @@ Como administrador financiero, quiero generar la Liquidación económica definit
 
 6. **Scenario**: Mortalidad del 100% (siniestro total)
    - **Given** una alerta de vaciado sanitario que identifica un lote con 9.000 aves iniciales, población actual sincronizada igual a 0 por mortalidad total, ningún resultado final de sacrificio y partidas de costo del ciclo por \$40.000.000 COP
-   - **When** se procesa la Liquidación de cierre
+   - **When** el administrador avanza a la vista previa, que en este caso no solicita precio por kg, y confirma con "Generar liquidación"
    - **Then** el sistema genera una Liquidación de siniestro total sin exigir precio por kg, mostrando Venta Bruta = \$0 COP, pollos vendidos = 0, Mortalidad del Lote = 9.000 aves (100%), Costos Operativos = \$40.000.000 COP y Utilidad Neta = −\$40.000.000 COP
 
 7. **Scenario**: Intento de Liquidación antes del vaciado sanitario
@@ -63,7 +64,7 @@ Como administrador financiero, quiero generar la Liquidación económica definit
 8. **Scenario**: Intento de segunda Liquidación activa sobre el mismo lote
    - **Given** un lote que ya cuenta con una Liquidación en estado `ACTIVA`
    - **When** el administrador intenta generar una nueva Liquidación sobre el mismo lote
-   - **Then** el sistema deniega la acción, informa que el lote ya está liquidado y ofrece consultar la Liquidación existente o iniciar su anulación (M3-CU04)
+   - **Then** el sistema deniega la acción, informa que el lote ya está liquidado y ofrece consultar la Liquidación existente (FR-014) o iniciar su anulación (M3-CU04)
 
 9. **Scenario**: Generación tras anulación de la Liquidación anterior
    - **Given** un lote cuya Liquidación previa fue anulada formalmente mediante M3-CU04 por un error de precio
@@ -75,6 +76,15 @@ Como administrador financiero, quiero generar la Liquidación económica definit
     - **When** el administrador solicita generar la Liquidación
     - **Then** el sistema genera la Liquidación usando esos datos, conserva la fecha y hora de sincronización de cada fuente en el snapshot financiero y no realiza consultas en vivo a los módulos de origen
 
+11. **Scenario**: Consulta de una Liquidación existente
+    - **Given** un lote con una Liquidación generada, en estado `ACTIVA` o `ANULADA`
+    - **When** el administrador financiero la abre desde la lista de lotes (M3-CU01) o desde el historial (M3-CU06)
+    - **Then** el sistema presenta la Liquidación como Matriz de Venta Final con sus valores tal como fueron emitidos, junto con los subtotales de Costos Operativos por categoría, la fecha, hora y usuario de generación y la fecha y hora de sincronización de cada fuente; ofrece consultar el Desglose (M3-CU05) y, solo si la Liquidación está `ACTIVA`, iniciar su anulación (M3-CU04). Si está `ANULADA`, muestra además su registro de anulación con motivo, fecha, hora y responsable
+
+12. **Scenario**: Abandono de la vista previa
+    - **Given** el administrador ingresó un precio por kg válido y se encuentra en la vista previa de la Liquidación
+    - **When** pulsa "Volver" o sale de la pantalla sin confirmar
+    - **Then** el sistema no persiste ningún registro, el lote permanece en etapa `Por Liquidar` (M3-CU01) y, al volver, el paso de captura conserva el precio digitado para corregirlo
 ---
 
 ### Edge Cases
@@ -87,6 +97,7 @@ Como administrador financiero, quiero generar la Liquidación económica definit
 - **Mortalidad frente a aves no vendidas**: La mortalidad se calcula como la diferencia entre población inicial y población actual, ambas de Módulo 1. **No** se calcula restando los pollos vendidos, porque esa diferencia mezcla aves muertas con aves no comercializadas (descartes, decomisos) y produce una mortalidad sobreestimada.
 - **Inmutabilidad absoluta (snapshot financiero)**: Una vez generada una Liquidación `ACTIVA`, sus valores quedan congelados, incluido el precio por kg ingresado. Si con posterioridad Módulo 1 o Módulo 2 corrigen sus cifras, la Liquidación existente no se altera; toda corrección exige anulación formal (M3-CU04) y una nueva Liquidación.
 - **Liquidación en galpón equivocado**: No se permite edición silenciosa. El usuario debe anular formalmente la Liquidación mediante M3-CU04 y generarla sobre el lote correcto.
+- **Cambio de datos sincronizados durante la vista previa**: Si una sincronización de M3-CU07 a M3-CU10 actualiza datos del lote mientras el administrador está en la vista previa, el sistema MUST recalcular la vista previa y advertir del cambio antes de permitir la confirmación, de modo que la Liquidación persistida coincida siempre con la última vista previa mostrada.
 - **Exclusión de costos indirectos**: Administración, arrendamientos, nómina general y servicios quedan fuera del cálculo (RT-08).
 
 ---
@@ -114,7 +125,7 @@ Como administrador financiero, quiero generar la Liquidación económica definit
   `Utilidad Neta = Venta Bruta − Costos Operativos`.
 - **FR-005**: El sistema MUST exigir una alerta de vaciado sanitario registrada por Módulo 1, que conserve los UUID del galpón y del lote, como condición previa obligatoria para liquidar. Además MUST existir un resultado final de sacrificio válido sincronizado desde Módulo 2 (M3-CU08), excepto cuando la población actual sincronizada del lote sea 0 por mortalidad total; en ese caso MUST permitir una Liquidación de siniestro total sin resultado de sacrificio ni precio por kg, con `ventaBruta = 0` y `pollosVendidos = 0`.  
   [NEEDS CLARIFICATION – D-04: Módulo 1 solo admite la transición a `Vaciado sanitario` desde `En cosecha`, por lo que un lote con mortalidad total en estado `Productivo` no alcanza la precondición de este requisito. Ruta de estado pendiente de acuerdo con Módulo 1.]
-- **FR-006**: El sistema MUST impedir la Liquidación y listar las partidas faltantes si alguna partida de alimento o medicina del ciclo carece de precio aplicable. No se permiten liquidaciones preliminares ni parciales.
+- **FR-006**: El sistema MUST impedir la Liquidación y listar las partidas faltantes si alguna partida de alimento o medicina del ciclo carece de precio aplicable. No se permiten liquidaciones preliminares ni parciales. La vista previa de FR-015 no es una liquidación preliminar: no se persiste, no tiene estado y no aparece en el historial (M3-CU06).
 - **FR-007**: El sistema MUST impedir la existencia de más de una Liquidación en estado `ACTIVA` por lote.
 - **FR-008**: El sistema MUST guardar la Liquidación con estado `ACTIVA`, fecha y hora de generación y usuario responsable. Toda Liquidación `ACTIVA` es inmutable; su corrección se ejecuta exclusivamente mediante el flujo de anulación definido en **M3-CU04 – Anular Liquidación**. El lote solo admite una nueva Liquidación cuando la anterior haya sido anulada formalmente.
 - **FR-009**: El sistema MUST generar la Liquidación exclusivamente con datos locales sincronizados cuyo origen sea Módulo 1 (M3-CU07) o Módulo 2 (M3-CU08, M3-CU09, M3-CU10), y MUST conservar en el snapshot financiero la fecha y hora de sincronización de cada fuente. La generación NO DEBE requerir consultas en vivo a los módulos de origen. Si no existen las copias locales requeridas, el sistema MUST bloquear la generación e informar que no hay datos disponibles.
@@ -122,6 +133,8 @@ Como administrador financiero, quiero generar la Liquidación económica definit
 - **FR-011**: El sistema MUST capturar manualmente, como único dato de entrada del administrador financiero, el **precio por kilogramo** en pesos colombianos (decimal positivo mayor que 0). MUST rechazar un precio menor o igual a cero.
 - **FR-012**: El sistema MUST tomar la cantidad final de pollos vendidos y el peso total exclusivamente del resultado final de sacrificio sincronizado (M3-CU08), MUST calcular `pesoPromedioKg = pesoTotalKg / pollosVendidos` solo con fines de presentación y NO DEBE editar ninguno de los valores operativos de origen.
 - **FR-013**: El sistema MUST presentar la Liquidación generada como **Matriz de Venta Final**: los cuatro indicadores (Venta Bruta, Mortalidad del Lote, Costos Operativos, Utilidad Neta) y los datos de venta que los sustentan (pollos vendidos, peso total, peso promedio, precio por kg).
+- **FR-014**: El sistema MUST permitir consultar una Liquidación existente, `ACTIVA` o `ANULADA`, desde la lista de lotes (M3-CU01, acción "Ver liquidación") y desde el historial (M3-CU06). La vista MUST presentar la Matriz de Venta Final (FR-013) con los valores congelados del snapshot, los subtotales de Costos Operativos por categoría (Alimento, Insumos Médicos, Costo de Población), la fecha, hora y usuario de generación y la fecha y hora de sincronización de cada fuente (RT-09). Desde esta vista el sistema MUST ofrecer la consulta del Desglose (M3-CU05) y, únicamente para una Liquidación `ACTIVA`, el inicio de su anulación (M3-CU04). Para una Liquidación `ANULADA` MUST mostrar su registro de anulación. La consulta NO DEBE recalcular ningún valor ni requerir consultas a Módulo 1 o Módulo 2.
+- **FR-015**: El sistema MUST generar la Liquidación en **dos pasos**: (1) **captura** del precio por kg (FR-011) junto con el resultado final de sacrificio que lo sustenta, con la acción "Siguiente"; (2) **vista previa** no persistida que presenta la Matriz de Venta Final (FR-013), los subtotales de Costos Operativos por categoría y la Mortalidad del Lote, con las acciones "Volver" y "Generar liquidación". La Liquidación MUST persistirse únicamente al confirmar "Generar liquidación" en la vista previa, con los mismos valores mostrados. "Volver" MUST regresar a la captura sin crear registro alguno. La vista previa MUST identificarse con un aviso visible de que la Liquidación aún no ha sido generada (por ejemplo, "Vista previa · sin generar"); ese aviso NO es un estado de la Liquidación, cuyos únicos estados son `ACTIVA` y `ANULADA`. En siniestro total (FR-005) el paso de captura no solicita precio por kg. Las validaciones de FR-005, FR-006, FR-007 y FR-009 MUST ejecutarse antes de mostrar la vista previa y nuevamente al confirmar.
 
 ### Key Entities
 

@@ -32,7 +32,7 @@ El Módulo 3 se encarga de determinar la rentabilidad real de cada lote avícola
 ### Casos de Uso del Módulo:
 
 #### 🧑‍💼 Funcionales (Administrador Financiero)
-1. **M3-CU01 – Consultar Lista de Galpones (P1):** Consulta del estado operativo y población viva actual de los galpones.
+1. **M3-CU01 – Consultar Lista de Lotes (P1):** Consulta de los lotes y su etapa (productivo, en cosecha, aislamiento, por liquidar, liquidado) para generar o ver su Liquidación.
 2. **M3-CU03 – Generar Liquidación del Lote (P1):** Ingreso del precio/kg y cálculo de Venta Bruta, Mortalidad, Costos Operativos y Utilidad Neta, presentados como Matriz de Venta Final.
 3. **M3-CU04 – Anular Liquidación (P1):** Flujo formal de anulación de liquidaciones con justificación y auditoría.
 4. **M3-CU05 – Consultar Desglose de Ventas y Gastos (P2):** Detalle auditado por partida y exportación a formato Excel (.xlsx).
