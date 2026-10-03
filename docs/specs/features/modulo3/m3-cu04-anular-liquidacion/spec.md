@@ -1,7 +1,7 @@
 # Feature Specification: M3-CU04 – Anular Liquidación
 
 **Created**: 2026-09-18  
-**Actualizado**: 2026-09-21  
+**Actualizado**: 2026-10-03  
 **Módulo**: 3 – Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)  
 **Rol Principal**: Administrador Financiero  
 
@@ -63,7 +63,7 @@ Como administrador financiero, quiero anular formalmente una Liquidación emitid
 
 - **FR-001**: El sistema MUST proveer un flujo de anulación aplicable a la **Liquidación**, único Documento Financiero definido en el glosario del módulo.
 - **FR-002**: El sistema MUST permitir anular únicamente Liquidaciones que se encuentren en estado `ACTIVA`, y MUST rechazar la anulación de Liquidaciones en estado `ANULADA`.
-- **FR-002b**: El único punto de entrada a la anulación es **M3-CU03**: al intentar generar la Liquidación de un lote que ya tiene una `ACTIVA` (CU03 escenario 8), el sistema ofrece consultarla o iniciar su anulación. El Desglose (M3-CU05) y el Historial (M3-CU06) solo **consultan** el registro de anulación; no la inician. Corresponde al `«extend»` de *Anular Liquidación* sobre *Generar Liquidación* en el diagrama de casos de uso.
+- **FR-002b**: La anulación se inicia únicamente desde la **vista de una Liquidación `ACTIVA`** definida en M3-CU03.FR-014, a la que se llega desde la lista de lotes (M3-CU01), desde el historial (M3-CU06) o desde el aviso de Liquidación existente (M3-CU03 escenario 8). El Desglose (M3-CU05) y el Historial (M3-CU06) solo **consultan** el registro de anulación; no la inician. Corresponde al `«extend»` de *Anular Liquidación* sobre *Generar Liquidación* en el diagrama de casos de uso.
 - **FR-003**: El sistema MUST exigir un motivo de anulación no vacío (mínimo 10 caracteres, máximo 500) antes de permitir la confirmación.
 - **FR-004**: El sistema MUST mostrar una pantalla de confirmación explícita antes de persistir la anulación, indicando el lote afectado y las consecuencias de la acción. Si el usuario cancela, el sistema NO DEBE realizar cambio alguno.
 - **FR-005**: Al confirmarse la anulación, el sistema MUST cambiar el estado de la Liquidación a `ANULADA` y MUST crear un registro de auditoría con motivo, fecha, hora y usuario responsable.
@@ -71,7 +71,7 @@ Como administrador financiero, quiero anular formalmente una Liquidación emitid
 - **FR-007**: Tras anular una Liquidación, el sistema MUST rehabilitar el lote para generar una nueva Liquidación (M3-CU03).
 - **FR-008**: El cambio de estado y la creación del registro de auditoría MUST ejecutarse dentro de una única transacción atómica. Si alguna operación falla, el sistema NO DEBE conservar cambios parciales.
 - **FR-009**: El sistema MUST operar exclusivamente sobre Liquidaciones almacenadas en M3, sin requerir consultas a Módulo 1 ni a Módulo 2.
-- **FR-010**: El sistema MUST permitir consultar el registro de anulación de cualquier Liquidación `ANULADA` desde el historial (M3-CU06) y desde el desglose (M3-CU05).
+- **FR-010**: El sistema MUST permitir consultar el registro de anulación de cualquier Liquidación `ANULADA` desde la vista de la Liquidación (M3-CU03.FR-014), desde el historial (M3-CU06) y desde el desglose (M3-CU05).
 
 ### Key Entities
 
