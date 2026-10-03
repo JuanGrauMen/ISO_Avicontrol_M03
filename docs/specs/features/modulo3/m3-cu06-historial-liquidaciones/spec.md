@@ -43,6 +43,11 @@ Como administrador financiero, quiero consultar el historial cronológico de tod
    - **Given** el usuario está configurando los filtros del historial
    - **When** ingresa una fecha de inicio posterior a la fecha de fin
    - **Then** el sistema valida en línea, alerta al usuario e impide ejecutar la consulta hasta corregir el intervalo
+   
+6.**Scenario**: Paginación de la lista
+   - **Given** la copia local sincronizada contiene más de 8 lotes
+   - **When** el administrador financiero accede al listado
+   - **Then** el sistema muestra únicamente los primeros 8 registros, sin importar el total disponible, y presenta al pie de la lista de resultados la cantidad mostrada frente al total (por ejemplo, "8 de 12 lotes"); el usuario avanza a los registros restantes mediante una acción explícita de paginación
 
 ---
 
@@ -52,6 +57,7 @@ Como administrador financiero, quiero consultar el historial cronológico de tod
 - **Rendimiento con alto volumen**: El sistema mantiene paginación o carga eficiente para soportar historiales de hasta 24 meses con múltiples ciclos por galpón.
 - **Varias Liquidaciones por lote**: Un lote puede aparecer varias veces en el historial si tuvo Liquidaciones anuladas, pero como máximo una de ellas estará en estado `ACTIVA`.
 - **Lote desvinculado del galpón**: Las Liquidaciones de lotes ya desvinculados siguen siendo consultables y filtrables por galpón, porque la Liquidación conserva los UUID históricos de galpón y lote tomados de la alerta de vaciado sanitario.
+- **Paginación tras aplicar filtro o búsqueda:**Al cambiar el filtro por fecha o el término de búsqueda, el sistema MUST reiniciar la paginación en la primera página.
 
 ---
 
@@ -67,6 +73,8 @@ Como administrador financiero, quiero consultar el historial cronológico de tod
 - **FR-006**: El sistema MUST permitir seleccionar un registro del historial para visualizar la Liquidación correspondiente (M3-CU03.FR-014). El desglose pormenorizado (M3-CU05) se consulta desde esa vista.
 - **FR-007**: Ante la ausencia de registros, el sistema MUST desplegar un mensaje descriptivo según el contexto (vacío total o sin resultados para los filtros).
 - **FR-008**: El sistema MUST construir el historial exclusivamente a partir de las Liquidaciones almacenadas en M3, sin requerir consultas a Módulo 1 ni a Módulo 2.
+- **FR-009**: El sistema MUST mostrar como máximo 8 lotes por página, sin importar cuántos registros resulten del filtro o búsqueda aplicados. Si el total de registros es mayor a 8, el sistema MUST paginar y mostrar únicamente los primeros 8 en la página inicial.
+- - **FR-010**: El sistema MUST indicar, al pie de la lista de resultados, la cantidad de lotes mostrados en la página actual frente al total de registros disponibles (por ejemplo, "8 de 12 lotes").
 
 ### Key Entities
 
