@@ -1,6 +1,6 @@
 # Diccionario de Dominio y Datos — Módulo 3: Liquidación de Lote y Análisis de Rentabilidad (AVICONTROL)
 
-**Versión**: 1.1  
+**Versión**: 1.2  
 **Fecha**: 03/10/2026  
 **Módulo**: 3 – Liquidación de Lote y Análisis de Rentabilidad  
 **Naturaleza**: Glosario Conceptual y Diccionario de Dominio / Base de Datos  
@@ -68,7 +68,21 @@ Reflejo local sincronizado de la parvada alojada en un galpón desde Módulo 1.
 
 ---
 
-### D. Tabla `partida_costo_lote` (Entidad `PartidaCostoLote`)
+### D. Tabla `alerta_vaciado_sanitario` (Entidad `AlertaVaciadoSanitario` — Copia Local M1)
+Evento registrado por Módulo 1 al concluir la cosecha y desvincular el lote del galpón. Es el pivote que permite a M3 identificar qué lote está listo para liquidar (`Por Liquidar`) y cuál ya fue liquidado (`Liquidado`). Sin esta alerta, M3 no puede derivar la etapa ni habilitar la generación de la Liquidación (CU01.FR-013, CU03.FR-005).
+
+| Campo | Tipo SQL | Nulo | Llave | Descripción y Regla de Negocio |
+| :--- | :--- | :--- | :--- | :--- |
+| `id_alerta` | `UUID` | NO | PK | Identificador único de la alerta generado por M1. |
+| `id_galpon` | `UUID` | NO | FK→galpon | Galpón que quedó en estado `Vaciado Sanitario`. |
+| `id_lote` | `UUID` | NO | FK→lote | Lote desvinculado del galpón al cierre del ciclo productivo. |
+| `fecha_hora_evento` | `TIMESTAMP` | NO | - | Momento exacto en que M1 registró el vaciado sanitario. |
+
+> **Regla de negocio**: La alerta es inmutable una vez recibida de M1. Su presencia — combinada con la existencia o no de una Liquidación `ACTIVA` — determina la etapa del lote en la lista (CU01.FR-013). No se elimina aunque el lote sea liquidado.
+
+---
+
+### E. Tabla `partida_costo_lote` (Entidad `PartidaCostoLote`)
 Detalle de las partidas de gasto congeladas asignadas a una liquidación.
 
 | Campo | Tipo SQL | Nulo | Llave | Descripción y Regla de Negocio |

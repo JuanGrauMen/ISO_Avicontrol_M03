@@ -56,6 +56,13 @@ CREATE TABLE lote (
     costo_total_cop    BIGINT NOT NULL,
     fecha_hora_sync    TIMESTAMP NOT NULL
 );
+
+CREATE TABLE alerta_vaciado_sanitario (
+    id_alerta          UUID PRIMARY KEY,
+    id_galpon          UUID NOT NULL REFERENCES galpon(id_galpon),
+    id_lote            UUID NOT NULL REFERENCES lote(id_lote),
+    fecha_hora_evento  TIMESTAMP NOT NULL
+);
 ```
 
 ---
