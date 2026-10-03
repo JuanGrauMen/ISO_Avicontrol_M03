@@ -109,10 +109,21 @@ CREATE TABLE alerta_vaciado_sanitario (
 package co.edu.unimagdalena.avicontrol.domain.port.out;
 
 import co.edu.unimagdalena.avicontrol.domain.model.Galpon;
+import co.edu.unimagdalena.avicontrol.domain.model.AlertaVaciadoSanitario;
 import java.util.List;
 
 public interface Modulo1Port {
+    /** CU07 — Sincroniza galpones con su lote activo vigente. */
     List<Galpon> obtenerGalponesYLotesVigentes();
+
+    /**
+     * CU07 — Recupera las alertas de vaciado sanitario emitidas por M1
+     * desde la última sincronización. Cada alerta indica que un lote fue
+     * desvinculado de su galpón y está disponible para liquidar (CU01.FR-013,
+     * CU03.FR-005). Las alertas se almacenan en la tabla local
+     * {@code alerta_vaciado_sanitario} y son inmutables una vez recibidas.
+     */
+    List<AlertaVaciadoSanitario> obtenerAlertasVaciadoSanitario();
 }
 ```
 
@@ -145,6 +156,7 @@ public class SacrificioKafkaListener {
 package co.edu.unimagdalena.avicontrol.application.service.sync;
 
 import co.edu.unimagdalena.avicontrol.domain.port.out.GalponRepository;
+import co.edu.unimagdalena.avicontrol.domain.port.out.AlertaVaciadoSanitarioRepository;
 import co.edu.unimagdalena.avicontrol.domain.port.out.Modulo1Port;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -155,18 +167,28 @@ public class SyncModulo1Service {
 
     private final Modulo1Port modulo1Port;
     private final GalponRepository galponRepository;
+    private final AlertaVaciadoSanitarioRepository alertaRepository;
 
-    public SyncModulo1Service(Modulo1Port modulo1Port, GalponRepository galponRepository) {
+    public SyncModulo1Service(Modulo1Port modulo1Port,
+                               GalponRepository galponRepository,
+                               AlertaVaciadoSanitarioRepository alertaRepository) {
         this.modulo1Port = modulo1Port;
         this.galponRepository = galponRepository;
+        this.alertaRepository = alertaRepository;
     }
 
     @Scheduled(cron = "${sync.cron.m1:0 */15 * * * *}")
     @Transactional
     public void ejecutarSincronizacionModulo1() {
         try {
+            // 1. Sincronizar galpones y lotes activos
             var galpones = modulo1Port.obtenerGalponesYLotesVigentes();
             galpones.forEach(galponRepository::guardarOActualizar);
+
+            // 2. Sincronizar alertas de vaciado sanitario (CU01.FR-013, CU03.FR-005)
+            // Las alertas son inmutables: solo se insertan si no existen (idempotente por id_alerta)
+            var alertas = modulo1Port.obtenerAlertasVaciadoSanitario();
+            alertas.forEach(alertaRepository::guardarSiNoExiste);
         } catch (Exception e) {
             // Log en registro_sincronizacion sin romper el timer
         }

@@ -106,6 +106,22 @@ public interface ListarLotesUseCase {
 }
 ```
 
+### Puerto de Salida: `LoteRepository.java`
+```java
+package co.edu.unimagdalena.avicontrol.domain.port.out;
+
+import co.edu.unimagdalena.avicontrol.domain.model.Lote;
+import org.springframework.data.domain.Page;
+
+public interface LoteRepository {
+    /**
+     * Consulta lotes filtrando por etapa derivada (o todas si es null/"Todos")
+     * y buscando por nombre de lote, galpón o UUID.
+     */
+    Page<Lote> buscarYFiltrarPorEtapa(String etapa, String search, int page, int size);
+}
+```
+
 ### DTOs de Respuesta: `LoteResumenDto.java` y `LotePageDto.java`
 ```java
 package co.edu.unimagdalena.avicontrol.application.dto;
