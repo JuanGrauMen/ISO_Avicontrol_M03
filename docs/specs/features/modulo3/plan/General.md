@@ -16,7 +16,7 @@ Este documento define la arquitectura, las tecnologías, el modelo de datos rela
 | --- | --- | --- |
 | Lenguaje | Java 21 (LTS) | Dominio, casos de uso, adaptadores y pruebas |
 | Framework principal | Spring Boot 3.3.x | Configuración, ejecución y composición de la aplicación REST |
-| Construcción | Gradle(`pom.xml`) | Gestión de dependencias, compilación y empaquetado |
+| Construcción | Gradle (`build.gradle`) | Gestión de dependencias, compilación y empaquetado |
 | API HTTP | Spring Web MVC | Controladores REST síncronos |
 | Validación | Jakarta Bean Validation | Validación de DTOs en adaptadores de entrada |
 | Seguridad | Spring Security | Autenticación JWT y autorización por rol (ej. `ROLE_FINANCIERO`) |
@@ -34,8 +34,6 @@ Este documento define la arquitectura, las tecnologías, el modelo de datos rela
 | Observabilidad | Spring Boot Actuator y Micrometer | Salud (`/actuator/health`) y métricas operativas |
 | Entorno local | Docker Compose | PostgreSQL y Kafka para desarrollo local |
 | Abstracción de tiempo | `java.time.Clock` | Fecha/hora inyectada para auditabilidad y pruebas deterministas |
-
-> **Nota sobre herramientas de construcción**: El Módulo 2 usa Gradle y el Módulo 3 usa Maven. Esto no representa ninguna incompatibilidad: la comunicación entre módulos ocurre exclusivamente a través de la red (HTTP REST y Kafka), por lo que la herramienta de build de cada módulo es un detalle interno sin impacto en la integración.
 
 ---
 
